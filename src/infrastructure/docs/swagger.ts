@@ -39,7 +39,14 @@ const swaggerOptions: OAS3Options = {
 const swaggerSpec = swaggerJSDoc(swaggerOptions);
 
 export const setupSwagger = (app: Application): void => {
-  app.use('/docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
+  const swaggerPaths = [
+    '/docs',
+    '/api-docs',
+    `/${process.env.BASE_URL_API || 'api'}/api-docs`,
+    `/${process.env.BASE_URL_API || 'api'}/docs`,
+  ];
+
+  app.use(swaggerPaths, swaggerUi.serve, swaggerUi.setup(swaggerSpec));
   app.get('/docs.json', (_req: Request, res: Response) => {
     res.setHeader('Content-Type', 'application/json');
     res.send(swaggerSpec);
