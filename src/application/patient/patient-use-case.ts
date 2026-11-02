@@ -15,9 +15,9 @@ export class PatientUseCase {
         this.findPatientByName = this.findPatientByName.bind(this);
     }
 
-    public async getPatients() {
+    public async getPatients(cmp_uuid?: string) {
         try {
-            const patients = await this.patientRepository.getPatients();
+            const patients = await this.patientRepository.getPatients(cmp_uuid);
             if (!patients) {
                 throw new Error("No hay pacientes.");
             }

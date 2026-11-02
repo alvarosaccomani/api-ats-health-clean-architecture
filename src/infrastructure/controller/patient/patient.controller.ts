@@ -15,16 +15,17 @@ export class PatientController {
         try {
             const page = req.params.page ? parseInt(req.params.page) : null;
             const perPage = req.params.perPage ? parseInt(req.params.perPage) : null;
+            const cmp_uuid = (req.query.cmp_uuid as string) || (req.params as any).cmp_uuid || undefined;
 
             if (page && perPage) {
-                const patients = await this.patientUseCase.getPatients();
+                const patients = await this.patientUseCase.getPatients(cmp_uuid);
                 return res.status(200).send({
                     success: true,
                     message: "Pacientes retornados.",
                     ...paginator(patients, page, perPage)
                 });
             } else {
-                const patients = await this.patientUseCase.getPatients();
+                const patients = await this.patientUseCase.getPatients(cmp_uuid);
                 return res.status(200).send({
                     success: true,
                     message: "Pacientes retornados.",

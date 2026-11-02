@@ -4,9 +4,16 @@ import { PatientRepository } from "../../../domain/patient/patient.repository";
 import { SequelizePatient } from "../../model/patient/patient.model";
 
 export class SequelizePatientRepository implements PatientRepository {
-    async getPatients(): Promise<PatientEntity[] | null> {
+    async getPatients(cmp_uuid?: string): Promise<PatientEntity[] | null> {
         try {
-            const patients = await SequelizePatient.findAll();
+            const whereCondition: any = {};
+            if (cmp_uuid && cmp_uuid.toLowerCase() !== 'null' && cmp_uuid.toLowerCase() !== 'undefined') {
+                whereCondition.cmp_uuid = cmp_uuid;
+            }
+            const patients = await SequelizePatient.findAll({
+                where: whereCondition,
+                order: [['pat_createdat', 'DESC']]
+            });
             if (!patients) {
                 throw new Error("No hay pacientes");
             }
