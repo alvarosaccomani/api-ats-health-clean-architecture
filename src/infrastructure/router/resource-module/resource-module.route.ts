@@ -1,4 +1,5 @@
 import { Express } from "express";
+import { authMiddleware } from "../../middlewares/auth.middleware";
 import { SequelizeRepository } from "../../repository/resource-module/sequelize-resource-module.repository";
 import { ResourceModuleUseCase } from "../../../application/resource-module/resource-module-use-case";
 import { ResourceModuleController } from "../../controller/resource-module/resource-module.controller";
@@ -58,7 +59,7 @@ function configureResourceModuleRoutes(app: Express, socketAdapter: SocketAdapte
      *                   items:
      *                     $ref: '#/components/schemas/ResourceModuleEntity'
      */
-    app.get(`/${process.env.BASE_URL_API}/resources-modules/:filter?/:page?/:perPage?`, resourceModuleCtrl.getAllCtrl);
+    app.get(`/${process.env.BASE_URL_API}/resources-modules/:filter?/:page?/:perPage?`, authMiddleware, resourceModuleCtrl.getAllCtrl);
 
     /**
      * @swagger
@@ -89,7 +90,7 @@ function configureResourceModuleRoutes(app: Express, socketAdapter: SocketAdapte
      *       400:
      *         description: Módulo no encontrado.
      */
-    app.get(`/${process.env.BASE_URL_API}/resource-module/:remo_uuid`, resourceModuleCtrl.getCtrl);
+    app.get(`/${process.env.BASE_URL_API}/resource-module/:remo_uuid`, authMiddleware, resourceModuleCtrl.getCtrl);
 
     /**
      * @swagger
@@ -105,10 +106,10 @@ function configureResourceModuleRoutes(app: Express, socketAdapter: SocketAdapte
      *           schema:
      *             $ref: '#/components/schemas/CreateResourceModuleDto'
      *     responses:
-     *       200:
+     *       201:
      *         description: Módulo creado con éxito.
      */
-    app.post(`/${process.env.BASE_URL_API}/resource-module`, resourceModuleCtrl.insertCtrl);
+    app.post(`/${process.env.BASE_URL_API}/resource-module`, authMiddleware, resourceModuleCtrl.insertCtrl);
 
     /**
      * @swagger
@@ -134,7 +135,7 @@ function configureResourceModuleRoutes(app: Express, socketAdapter: SocketAdapte
      *       200:
      *         description: Módulo actualizado.
      */
-    app.put(`/${process.env.BASE_URL_API}/resource-module/:remo_uuid`, resourceModuleCtrl.updateCtrl);
+    app.put(`/${process.env.BASE_URL_API}/resource-module/:remo_uuid`, authMiddleware, resourceModuleCtrl.updateCtrl);
 
     /**
      * @swagger
@@ -154,7 +155,7 @@ function configureResourceModuleRoutes(app: Express, socketAdapter: SocketAdapte
      *       200:
      *         description: Módulo eliminado con éxito.
      */
-    app.delete(`/${process.env.BASE_URL_API}/resource-module/:remo_uuid`, resourceModuleCtrl.deleteCtrl);
+    app.delete(`/${process.env.BASE_URL_API}/resource-module/:remo_uuid`, authMiddleware, resourceModuleCtrl.deleteCtrl);
 }
 
 export default configureResourceModuleRoutes;
