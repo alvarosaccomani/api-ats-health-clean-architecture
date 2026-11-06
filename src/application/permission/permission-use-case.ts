@@ -14,10 +14,10 @@ export class PermissionUseCase {
         this.findPermissionBySlug = this.findPermissionBySlug.bind(this);
     }
 
-    public async getPermissions() {
+    public async getPermissions(options?: { transaction?: any }) {
         try {
-            const permissions = await this.permissionRepository.getPermissions();
-            if(!permissions) {
+            const permissions = await this.permissionRepository.getPermissions(options);
+            if (!permissions) {
                 throw new Error('No hay permisos.');
             }
             return permissions.map(permission => ({
@@ -33,14 +33,14 @@ export class PermissionUseCase {
             }));
         } catch (error: any) {
             console.error('Error en getPermissions (use case):', error.message);
-            throw error; // Propagar el error hacia el controlador
+            throw error;
         }
     }
 
-    public async getDetailPermission(per_uuid: string) {
+    public async getDetailPermission(per_uuid: string, options?: { transaction?: any }) {
         try {
-            const permission = await this.permissionRepository.findPermissionById(per_uuid);
-            if(!permission) {
+            const permission = await this.permissionRepository.findPermissionById(per_uuid, options);
+            if (!permission) {
                 throw new Error(`No hay permisos con el Id: ${per_uuid}`);
             }
             return {
@@ -56,15 +56,19 @@ export class PermissionUseCase {
             };
         } catch (error: any) {
             console.error('Error en getDetailPermission (use case):', error.message);
-            throw error; // Propagar el error hacia el controlador
+            throw error;
         }
     }
     
-    public async createPermission({ per_uuid, per_slug, per_description, rety_uuid, remo_uuid } : { per_uuid: string, per_slug: string, per_description: string, rety_uuid: string, remo_uuid: string }) {
+    public async createPermission(
+        { per_uuid, per_slug, per_description, rety_uuid, remo_uuid }: 
+        { per_uuid?: string; per_slug: string; per_description: string; rety_uuid: string; remo_uuid: string },
+        options?: { transaction?: any }
+    ) {
         try {
             const permissionValue = new PermissionValue({ per_uuid, per_slug, per_description, rety_uuid, remo_uuid });
-            const permissionCreated = await this.permissionRepository.createPermission(permissionValue);
-            if(!permissionCreated) {
+            const permissionCreated = await this.permissionRepository.createPermission(permissionValue, options);
+            if (!permissionCreated) {
                 throw new Error(`No se pudo insertar el permiso.`);
             }
             return {
@@ -78,14 +82,19 @@ export class PermissionUseCase {
             };
         } catch (error: any) {
             console.error('Error en createPermission (use case):', error.message);
-            throw error; // Propagar el error hacia el controlador
+            throw error;
         }
     }
 
-    public async updatePermission(per_uuid: string, { per_slug, per_description, rety_uuid, remo_uuid } : { per_slug: string, per_description: string, rety_uuid: string, remo_uuid: string }) {
+    public async updatePermission(
+        per_uuid: string, 
+        { per_slug, per_description, rety_uuid, remo_uuid }: 
+        { per_slug?: string; per_description?: string; rety_uuid?: string; remo_uuid?: string },
+        options?: { transaction?: any }
+    ) {
         try {
-            const permissionUpdated = await this.permissionRepository.updatePermission(per_uuid, { per_slug, per_description, rety_uuid, remo_uuid });
-            if(!permissionUpdated) {
+            const permissionUpdated = await this.permissionRepository.updatePermission(per_uuid, { per_slug, per_description, rety_uuid, remo_uuid }, options);
+            if (!permissionUpdated) {
                 throw new Error(`No se pudo actualizar el permiso.`);
             }
             return {
@@ -99,14 +108,14 @@ export class PermissionUseCase {
             };
         } catch (error: any) {
             console.error('Error en updatePermission (use case):', error.message);
-            throw error; // Propagar el error hacia el controlador
+            throw error;
         }
     }
 
-    public async deletePermission(per_uuid: string) {
+    public async deletePermission(per_uuid: string, options?: { transaction?: any }) {
         try {
-            const permissionDeleted = await this.permissionRepository.deletePermission(per_uuid);
-            if(!permissionDeleted) {
+            const permissionDeleted = await this.permissionRepository.deletePermission(per_uuid, options);
+            if (!permissionDeleted) {
                 throw new Error(`No se pudo eliminar el permiso.`);
             }
             return {
@@ -120,21 +129,17 @@ export class PermissionUseCase {
             };
         } catch (error: any) {
             console.error('Error en deletePermission (use case):', error.message);
-            throw error; // Propagar el error hacia el controlador
+            throw error;
         }
     }
 
-    public async findPermissionBySlug(per_slug: string, excludeUuid?: string) {
+    public async findPermissionBySlug(per_slug: string, excludeUuid?: string | null, options?: { transaction?: any }) {
         try {
-            const permission = await this.permissionRepository.findPermissionBySlug(per_slug, excludeUuid)
-            if(permission) {
-                throw new Error(`Ya existe un permiso con el slug ${per_slug}.`);
-            }
-            return permission
+            const permission = await this.permissionRepository.findPermissionBySlug(per_slug, excludeUuid, options);
+            return permission;
         } catch (error: any) {
             console.error('Error en findPermissionBySlug (use case):', error.message);
-            throw error; // Propagar el error hacia el controlador
+            throw error;
         }
     }
-
 }
