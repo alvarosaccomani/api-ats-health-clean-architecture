@@ -1,29 +1,17 @@
 import { Express } from "express";
-import { SequelizeRepository as SequelizeCompanyRepository } from "../../repository/company/sequelize-company.repository";
+import { SequelizeCompanyRepository } from "../../repository/company/sequelize-company.repository";
 import { CompanyUseCase } from "../../../application/company/company-use-case";
 import { CompanyController } from "../../controller/company/company.controller";
 import SocketAdapter from "../../services/socketAdapter";
 import { authMiddleware } from "../../middlewares/auth.middleware";
 
-function configureCompanyRoutes(app: Express, socketAdapter: SocketAdapter) {
-    /*
-    *   Iniciar repository
-    */
-    
+function configureCompanyRoutes(app: Express, socketAdapter?: SocketAdapter) {
     const sequelizeCompanyRepository = new SequelizeCompanyRepository();
-    
-    /*
-    *   Iniciar casos de uso
-    */
-    
     const companyUseCase = new CompanyUseCase(sequelizeCompanyRepository);
-    
-    /*
-    *   Iniciar controller
-    */
-    
     const companyCtrl = new CompanyController(companyUseCase, socketAdapter);
     
+    const basePrefix = process.env.BASE_URL_API || 'api';
+
     /**
      * @swagger
      * /companies:
@@ -31,37 +19,10 @@ function configureCompanyRoutes(app: Express, socketAdapter: SocketAdapter) {
      *     summary: Obtener lista de empresas registradas (con paginación opcional)
      *     tags:
      *       - Companies
-     *     parameters:
-     *       - in: query
-     *         name: filter
-     *         schema:
-     *           type: string
-     *       - in: query
-     *         name: page
-     *         schema:
-     *           type: integer
-     *       - in: query
-     *         name: perPage
-     *         schema:
-     *           type: integer
-     *     responses:
-     *       200:
-     *         description: Empresas retornadas.
-     *         content:
-     *           application/json:
-     *             schema:
-     *               type: object
-     *               properties:
-     *                 success:
-     *                   type: boolean
-     *                 data:
-     *                   type: array
-     *                   items:
-     *                     $ref: '#/components/schemas/CompanyEntity'
-     *       400:
-     *         description: Error al recuperar las empresas.
+     *     security:
+     *       - bearerAuth: []
      */
-    app.get(`/${process.env.BASE_URL_API}/companies/:filter?/:page?/:perPage?`, companyCtrl.getAllCtrl);
+    app.get(`/${basePrefix}/companies/:filter?/:page?/:perPage?`, authMiddleware, companyCtrl.getAllCtrl);
 
     /**
      * @swagger
@@ -70,29 +31,10 @@ function configureCompanyRoutes(app: Express, socketAdapter: SocketAdapter) {
      *     summary: Obtener detalle de una empresa por UUID
      *     tags:
      *       - Companies
-     *     parameters:
-     *       - in: path
-     *         name: cmp_uuid
-     *         required: true
-     *         schema:
-     *           type: string
-     *           format: uuid
-     *     responses:
-     *       200:
-     *         description: Empresa retornada.
-     *         content:
-     *           application/json:
-     *             schema:
-     *               type: object
-     *               properties:
-     *                 success:
-     *                   type: boolean
-     *                 data:
-     *                   $ref: '#/components/schemas/CompanyEntity'
-     *       400:
-     *         description: Empresa no encontrada o ID inválido.
+     *     security:
+     *       - bearerAuth: []
      */
-    app.get(`/${process.env.BASE_URL_API}/company/:cmp_uuid`, companyCtrl.getCtrl);
+    app.get(`/${basePrefix}/company/:cmp_uuid`, authMiddleware, companyCtrl.getCtrl);
 
     /**
      * @swagger
@@ -103,30 +45,8 @@ function configureCompanyRoutes(app: Express, socketAdapter: SocketAdapter) {
      *       - Companies
      *     security:
      *       - bearerAuth: []
-     *     requestBody:
-     *       required: true
-     *       content:
-     *         application/json:
-     *           schema:
-     *             $ref: '#/components/schemas/CreateCompanyDto'
-     *     responses:
-     *       200:
-     *         description: Empresa creada con éxito.
-     *         content:
-     *           application/json:
-     *             schema:
-     *               type: object
-     *               properties:
-     *                 success:
-     *                   type: boolean
-     *                 data:
-     *                   $ref: '#/components/schemas/CompanyEntity'
-     *       400:
-     *         description: Error al registrar la empresa o slug duplicado.
-     *       401:
-     *         description: No autorizado.
      */
-    app.post(`/${process.env.BASE_URL_API}/company`, authMiddleware, companyCtrl.insertCtrl);
+    app.post(`/${basePrefix}/company`, authMiddleware, companyCtrl.insertCtrl);
 
     /**
      * @swagger
@@ -137,37 +57,8 @@ function configureCompanyRoutes(app: Express, socketAdapter: SocketAdapter) {
      *       - Companies
      *     security:
      *       - bearerAuth: []
-     *     parameters:
-     *       - in: path
-     *         name: cmp_uuid
-     *         required: true
-     *         schema:
-     *           type: string
-     *           format: uuid
-     *     requestBody:
-     *       required: true
-     *       content:
-     *         application/json:
-     *           schema:
-     *             $ref: '#/components/schemas/UpdateCompanyDto'
-     *     responses:
-     *       200:
-     *         description: Empresa actualizada con éxito.
-     *         content:
-     *           application/json:
-     *             schema:
-     *               type: object
-     *               properties:
-     *                 success:
-     *                   type: boolean
-     *                 data:
-     *                   $ref: '#/components/schemas/CompanyEntity'
-     *       400:
-     *         description: Error al actualizar la empresa.
-     *       401:
-     *         description: No autorizado.
      */
-    app.put(`/${process.env.BASE_URL_API}/company/:cmp_uuid`, authMiddleware, companyCtrl.updateCtrl);
+    app.put(`/${basePrefix}/company/:cmp_uuid`, authMiddleware, companyCtrl.updateCtrl);
 
     /**
      * @swagger
@@ -178,29 +69,8 @@ function configureCompanyRoutes(app: Express, socketAdapter: SocketAdapter) {
      *       - Companies
      *     security:
      *       - bearerAuth: []
-     *     parameters:
-     *       - in: path
-     *         name: cmp_uuid
-     *         required: true
-     *         schema:
-     *           type: string
-     *           format: uuid
-     *     responses:
-     *       200:
-     *         description: Empresa eliminada con éxito.
-     *         content:
-     *           application/json:
-     *             schema:
-     *               type: object
-     *               properties:
-     *                 success:
-     *                   type: boolean
-     *       400:
-     *         description: Error al eliminar la empresa.
-     *       401:
-     *         description: No autorizado.
      */
-    app.delete(`/${process.env.BASE_URL_API}/company/:cmp_uuid`, authMiddleware, companyCtrl.deleteCtrl);
+    app.delete(`/${basePrefix}/company/:cmp_uuid`, authMiddleware, companyCtrl.deleteCtrl);
 }
 
 export default configureCompanyRoutes;
