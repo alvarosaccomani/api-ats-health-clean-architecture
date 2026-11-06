@@ -1,5 +1,6 @@
 import { CompanySettingRepository } from "../../domain/company-setting/company-setting.repository";
 import { CompanySettingValue } from "../../domain/company-setting/company-setting.value";
+import { CompanySettingEntity, CompanySettingUpdateData } from "../../domain/company-setting/company-setting.entity";
 import { TimezoneConverter } from "../../infrastructure/utils/TimezoneConverter";
 
 export class CompanySettingUseCase {
@@ -14,13 +15,13 @@ export class CompanySettingUseCase {
         this.findCompanySettingByKey = this.findCompanySettingByKey.bind(this);
     }
 
-    public async getCompaniesSettings(cmp_uuid: string) {
+    public async getCompaniesSettings(cmp_uuid: string, options?: { transaction?: any }) {
         try {
-            const companiesSetting = await this.companySettingRepository.getCompaniesSettings(cmp_uuid);
-            if(!companiesSetting) {
-                throw new Error('No hay configuraciones de empresa.');
+            const companiesSettings = await this.companySettingRepository.getCompaniesSettings(cmp_uuid, options);
+            if (!companiesSettings) {
+                return [];
             }
-            return companiesSetting.map(companySetting => ({
+            return companiesSettings.map(companySetting => ({
                 cmp_uuid: companySetting.cmp_uuid,
                 cmps_uuid: companySetting.cmps_uuid,
                 cmps_key: companySetting.cmps_key,    
@@ -28,6 +29,7 @@ export class CompanySettingUseCase {
                 cmps_description: companySetting.cmps_description,
                 cmps_value: companySetting.cmps_value,
                 cmps_datatype: companySetting.cmps_datatype,
+                dtp_uuid: companySetting.dtp_uuid,
                 cmps_options: companySetting.cmps_options,
                 cmps_group: companySetting.cmps_group,
                 cmps_createdat: TimezoneConverter.toIsoStringInTimezone(companySetting.cmps_createdat, 'America/Buenos_Aires'),
@@ -35,14 +37,14 @@ export class CompanySettingUseCase {
             }));
         } catch (error: any) {
             console.error('Error en getCompaniesSettings (use case):', error.message);
-            throw error; // Propagar el error hacia el controlador
+            throw error;
         }
     }
 
-    public async getDetailCompanySetting(cmp_uuid: string, cmps_uuid: string) {
+    public async getDetailCompanySetting(cmp_uuid: string, cmps_uuid: string, options?: { transaction?: any }) {
         try {
-            const companySetting = await this.companySettingRepository.findCompanySettingById(cmp_uuid, cmps_uuid);
-            if(!companySetting) {
+            const companySetting = await this.companySettingRepository.findCompanySettingById(cmp_uuid, cmps_uuid, options);
+            if (!companySetting) {
                 throw new Error(`No hay configuración de empresa con el Id: ${cmps_uuid}`);
             }
             return {
@@ -53,6 +55,7 @@ export class CompanySettingUseCase {
                 cmps_description: companySetting.cmps_description,
                 cmps_value: companySetting.cmps_value,
                 cmps_datatype: companySetting.cmps_datatype,
+                dtp_uuid: companySetting.dtp_uuid,
                 cmps_options: companySetting.cmps_options,
                 cmps_group: companySetting.cmps_group,
                 cmps_createdat: TimezoneConverter.toIsoStringInTimezone(companySetting.cmps_createdat, 'America/Buenos_Aires'),
@@ -60,15 +63,29 @@ export class CompanySettingUseCase {
             };
         } catch (error: any) {
             console.error('Error en getDetailCompanySetting (use case):', error.message);
-            throw error; // Propagar el error hacia el controlador
+            throw error;
         }
     }
     
-    public async createCompanySetting({ cmp_uuid, cmps_uuid, cmps_key, cmps_parameter, cmps_description, cmps_value, cmps_datatype, cmps_options, cmps_group } : { cmp_uuid: string, cmps_uuid: string, cmps_key: string, cmps_parameter: string, cmps_description: string, cmps_value: string, cmps_datatype: string, cmps_options: string, cmps_group: string }) {
+    public async createCompanySetting(
+        data: {
+            cmp_uuid: string;
+            cmps_uuid?: string;
+            cmps_key: string;
+            cmps_parameter: string;
+            cmps_description?: string | null;
+            cmps_value: string;
+            cmps_datatype?: string | null;
+            dtp_uuid?: string | null;
+            cmps_options?: string | null;
+            cmps_group?: string | null;
+        },
+        options?: { transaction?: any }
+    ) {
         try {
-            const companySettingValue = new CompanySettingValue({ cmp_uuid, cmps_uuid, cmps_key, cmps_parameter, cmps_description, cmps_value, cmps_datatype, cmps_options, cmps_group });
-            const companySettingCreated = await this.companySettingRepository.createCompanySetting(companySettingValue);
-            if(!companySettingCreated) {
+            const companySettingValue = new CompanySettingValue(data);
+            const companySettingCreated = await this.companySettingRepository.createCompanySetting(companySettingValue, options);
+            if (!companySettingCreated) {
                 throw new Error(`No se pudo insertar la configuración de empresa.`);
             }
             return {
@@ -79,21 +96,22 @@ export class CompanySettingUseCase {
                 cmps_description: companySettingCreated.cmps_description,
                 cmps_value: companySettingCreated.cmps_value,
                 cmps_datatype: companySettingCreated.cmps_datatype,
+                dtp_uuid: companySettingCreated.dtp_uuid,
                 cmps_options: companySettingCreated.cmps_options,
                 cmps_group: companySettingCreated.cmps_group,
                 cmps_createdat: TimezoneConverter.toIsoStringInTimezone(companySettingCreated.cmps_createdat, 'America/Buenos_Aires'),
                 cmps_updatedat: TimezoneConverter.toIsoStringInTimezone(companySettingCreated.cmps_updatedat, 'America/Buenos_Aires')
             };
         } catch (error: any) {
-            console.error('Error en createCompany (use case):', error.message);
-            throw error; // Propagar el error hacia el controlador
+            console.error('Error en createCompanySetting (use case):', error.message);
+            throw error;
         }
     }
 
-    public async updateCompanySetting(cmp_uuid: string, cmps_uuid: string, { cmps_key, cmps_parameter, cmps_description, cmps_value, cmps_datatype, cmps_options, cmps_group } : { cmps_key: string, cmps_parameter: string, cmps_description: string, cmps_value: string, cmps_datatype: string, cmps_options: string, cmps_group: string }) {
+    public async updateCompanySetting(cmp_uuid: string, cmps_uuid: string, data: CompanySettingUpdateData, options?: { transaction?: any }) {
         try {
-            const companySettingUpdated = await this.companySettingRepository.updateCompanySetting(cmp_uuid, cmps_uuid, { cmps_key, cmps_parameter, cmps_description, cmps_value, cmps_datatype, cmps_options, cmps_group });
-            if(!companySettingUpdated) {
+            const companySettingUpdated = await this.companySettingRepository.updateCompanySetting(cmp_uuid, cmps_uuid, data, options);
+            if (!companySettingUpdated) {
                 throw new Error(`No se pudo actualizar la configuración de empresa.`);
             }
             return {
@@ -104,6 +122,7 @@ export class CompanySettingUseCase {
                 cmps_description: companySettingUpdated.cmps_description,
                 cmps_value: companySettingUpdated.cmps_value,
                 cmps_datatype: companySettingUpdated.cmps_datatype,
+                dtp_uuid: companySettingUpdated.dtp_uuid,
                 cmps_options: companySettingUpdated.cmps_options,
                 cmps_group: companySettingUpdated.cmps_group,
                 cmps_createdat: TimezoneConverter.toIsoStringInTimezone(companySettingUpdated.cmps_createdat, 'America/Buenos_Aires'),
@@ -111,14 +130,14 @@ export class CompanySettingUseCase {
             };
         } catch (error: any) {
             console.error('Error en updateCompanySetting (use case):', error.message);
-            throw error; // Propagar el error hacia el controlador
+            throw error;
         }
     }
 
-    public async deleteCompanySetting(cmp_uuid: string, cmps_uuid: string) {
+    public async deleteCompanySetting(cmp_uuid: string, cmps_uuid: string, options?: { transaction?: any }) {
         try {
-            const companySettingDeleted = await this.companySettingRepository.deleteCompanySetting(cmp_uuid, cmps_uuid);
-            if(!companySettingDeleted) {
+            const companySettingDeleted = await this.companySettingRepository.deleteCompanySetting(cmp_uuid, cmps_uuid, options);
+            if (!companySettingDeleted) {
                 throw new Error(`No se pudo eliminar la configuración de empresa.`);
             }
             return {
@@ -129,6 +148,7 @@ export class CompanySettingUseCase {
                 cmps_description: companySettingDeleted.cmps_description,
                 cmps_value: companySettingDeleted.cmps_value,
                 cmps_datatype: companySettingDeleted.cmps_datatype,
+                dtp_uuid: companySettingDeleted.dtp_uuid,
                 cmps_options: companySettingDeleted.cmps_options,
                 cmps_group: companySettingDeleted.cmps_group,
                 cmps_createdat: TimezoneConverter.toIsoStringInTimezone(companySettingDeleted.cmps_createdat, 'America/Buenos_Aires'),
@@ -136,21 +156,17 @@ export class CompanySettingUseCase {
             };
         } catch (error: any) {
             console.error('Error en deleteCompanySetting (use case):', error.message);
-            throw error; // Propagar el error hacia el controlador
+            throw error;
         }
     }
 
-    public async findCompanySettingByKey(cmp_uuid: string, cmps_key: string, excludeUuid?: string) {
+    public async findCompanySettingByKey(cmp_uuid: string, cmps_key: string, excludeUuid?: string, options?: { transaction?: any }) {
         try {
-            const companySetting = await this.companySettingRepository.findCompanySettingByKey(cmp_uuid, cmps_key, excludeUuid)
-            if(companySetting) {
-                throw new Error(`Ya existe una configuración de empresa con la key ${cmps_key}.`);
-            }
-            return companySetting
+            const companySetting = await this.companySettingRepository.findCompanySettingByKey(cmp_uuid, cmps_key, excludeUuid, options);
+            return companySetting;
         } catch (error: any) {
             console.error('Error en findCompanySettingByKey (use case):', error.message);
-            throw error; // Propagar el error hacia el controlador
+            throw error;
         }
     }
-
 }
