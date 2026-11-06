@@ -2,23 +2,15 @@ import { Express } from "express";
 import { SequelizePatientRepository } from "../../repository/patient/sequelize-patient.repository";
 import { PatientUseCase } from "../../../application/patient/patient-use-case";
 import { PatientController } from "../../controller/patient/patient.controller";
+import { authMiddleware } from "../../middlewares/auth.middleware";
 import SocketAdapter from "../../services/socketAdapter";
 
 function configurePatientRoutes(app: Express, socketAdapter?: SocketAdapter) {
-    /*
-    *   Iniciar repository
-    */
     const sequelizePatientRepository = new SequelizePatientRepository();
-
-    /*
-    *   Iniciar casos de uso
-    */
     const patientUseCase = new PatientUseCase(sequelizePatientRepository);
-
-    /*
-    *   Iniciar controller
-    */
     const patientCtrl = new PatientController(patientUseCase);
+
+    const basePrefix = process.env.BASE_URL_API || 'api';
 
     /**
      * @swagger
@@ -27,41 +19,10 @@ function configurePatientRoutes(app: Express, socketAdapter?: SocketAdapter) {
      *     tags:
      *       - Patients
      *     summary: Obtiene la lista de pacientes registrados
-     *     description: Retorna una lista de todos los pacientes o página de pacientes registrados.
      *     security:
      *       - bearerAuth: []
-     *     responses:
-     *       200:
-     *         description: Operación exitosa. Retorna la lista de pacientes.
-     *         content:
-     *           application/json:
-     *             schema:
-     *               type: object
-     *               properties:
-     *                 success:
-     *                   type: boolean
-     *                   example: true
-     *                 message:
-     *                   type: string
-     *                   example: Pacientes retornados.
-     *                 data:
-     *                   type: array
-     *                   items:
-     *                     $ref: '#/components/schemas/PatientEntity'
-     *       400:
-     *         description: Error al obtener los pacientes.
-     *         content:
-     *           application/json:
-     *             schema:
-     *               $ref: '#/components/schemas/ErrorResponse'
-     *       401:
-     *         description: No autorizado.
-     *         content:
-     *           application/json:
-     *             schema:
-     *               $ref: '#/components/schemas/ErrorResponse'
      */
-    app.get(`/${process.env.BASE_URL_API}/patients/:filter?/:page?/:perPage?`, patientCtrl.getAllCtrl);
+    app.get(`/${basePrefix}/patients/:filter?/:page?/:perPage?`, authMiddleware, patientCtrl.getAllCtrl);
 
     /**
      * @swagger
@@ -70,47 +31,10 @@ function configurePatientRoutes(app: Express, socketAdapter?: SocketAdapter) {
      *     tags:
      *       - Patients
      *     summary: Obtiene el detalle de un paciente por UUID
-     *     description: Retorna la información completa del paciente especificado por su UUID.
      *     security:
      *       - bearerAuth: []
-     *     parameters:
-     *       - in: path
-     *         name: pat_uuid
-     *         required: true
-     *         schema:
-     *           type: string
-     *           format: uuid
-     *         description: UUID del paciente a consultar
-     *     responses:
-     *       200:
-     *         description: Paciente encontrado.
-     *         content:
-     *           application/json:
-     *             schema:
-     *               type: object
-     *               properties:
-     *                 success:
-     *                   type: boolean
-     *                   example: true
-     *                 message:
-     *                   type: string
-     *                   example: Paciente retornado.
-     *                 data:
-     *                   $ref: '#/components/schemas/PatientEntity'
-     *       400:
-     *         description: Error al obtener el paciente o UUID inválido.
-     *         content:
-     *           application/json:
-     *             schema:
-     *               $ref: '#/components/schemas/ErrorResponse'
-     *       401:
-     *         description: No autorizado.
-     *         content:
-     *           application/json:
-     *             schema:
-     *               $ref: '#/components/schemas/ErrorResponse'
      */
-    app.get(`/${process.env.BASE_URL_API}/patient/:pat_uuid`, patientCtrl.getCtrl);
+    app.get(`/${basePrefix}/patient/:pat_uuid`, authMiddleware, patientCtrl.getCtrl);
 
     /**
      * @swagger
@@ -119,39 +43,10 @@ function configurePatientRoutes(app: Express, socketAdapter?: SocketAdapter) {
      *     tags:
      *       - Patients
      *     summary: Crear un nuevo paciente
-     *     description: Registra un nuevo paciente en el sistema.
      *     security:
      *       - bearerAuth: []
-     *     requestBody:
-     *       required: true
-     *       content:
-     *         application/json:
-     *           schema:
-     *             $ref: '#/components/schemas/PatientInputDTO'
-     *     responses:
-     *       201:
-     *         description: Paciente creado con éxito.
-     *         content:
-     *           application/json:
-     *             schema:
-     *               type: object
-     *               properties:
-     *                 success:
-     *                   type: boolean
-     *                   example: true
-     *                 message:
-     *                   type: string
-     *                   example: Paciente creado con éxito.
-     *                 data:
-     *                   $ref: '#/components/schemas/PatientEntity'
-     *       400:
-     *         description: Datos inválidos o error al registrar el paciente.
-     *         content:
-     *           application/json:
-     *             schema:
-     *               $ref: '#/components/schemas/ErrorResponse'
      */
-    app.post(`/${process.env.BASE_URL_API}/patient`, patientCtrl.insertCtrl);
+    app.post(`/${basePrefix}/patient`, authMiddleware, patientCtrl.insertCtrl);
 
     /**
      * @swagger
@@ -160,47 +55,10 @@ function configurePatientRoutes(app: Express, socketAdapter?: SocketAdapter) {
      *     tags:
      *       - Patients
      *     summary: Actualizar datos de un paciente
-     *     description: Modifica los datos de un paciente existente identificado por su UUID.
      *     security:
      *       - bearerAuth: []
-     *     parameters:
-     *       - in: path
-     *         name: pat_uuid
-     *         required: true
-     *         schema:
-     *           type: string
-     *           format: uuid
-     *         description: UUID del paciente a actualizar
-     *     requestBody:
-     *       required: true
-     *       content:
-     *         application/json:
-     *           schema:
-     *             $ref: '#/components/schemas/PatientUpdateDTO'
-     *     responses:
-     *       200:
-     *         description: Paciente actualizado con éxito.
-     *         content:
-     *           application/json:
-     *             schema:
-     *               type: object
-     *               properties:
-     *                 success:
-     *                   type: boolean
-     *                   example: true
-     *                 message:
-     *                   type: string
-     *                   example: Paciente actualizado con éxito.
-     *                 data:
-     *                   $ref: '#/components/schemas/PatientEntity'
-     *       400:
-     *         description: Datos inválidos o error en la actualización.
-     *         content:
-     *           application/json:
-     *             schema:
-     *               $ref: '#/components/schemas/ErrorResponse'
      */
-    app.put(`/${process.env.BASE_URL_API}/patient/:pat_uuid`, patientCtrl.updateCtrl);
+    app.put(`/${basePrefix}/patient/:pat_uuid`, authMiddleware, patientCtrl.updateCtrl);
 
     /**
      * @swagger
@@ -209,41 +67,10 @@ function configurePatientRoutes(app: Express, socketAdapter?: SocketAdapter) {
      *     tags:
      *       - Patients
      *     summary: Eliminar un paciente
-     *     description: Da de baja al paciente correspondiente al UUID provisto.
      *     security:
      *       - bearerAuth: []
-     *     parameters:
-     *       - in: path
-     *         name: pat_uuid
-     *         required: true
-     *         schema:
-     *           type: string
-     *           format: uuid
-     *         description: UUID del paciente a eliminar
-     *     responses:
-     *       200:
-     *         description: Paciente eliminado con éxito.
-     *         content:
-     *           application/json:
-     *             schema:
-     *               type: object
-     *               properties:
-     *                 success:
-     *                   type: boolean
-     *                   example: true
-     *                 message:
-     *                   type: string
-     *                   example: Paciente eliminado con éxito.
-     *                 data:
-     *                   $ref: '#/components/schemas/PatientEntity'
-     *       400:
-     *         description: Error al eliminar el paciente.
-     *         content:
-     *           application/json:
-     *             schema:
-     *               $ref: '#/components/schemas/ErrorResponse'
      */
-    app.delete(`/${process.env.BASE_URL_API}/patient/:pat_uuid`, patientCtrl.deleteCtrl);
+    app.delete(`/${basePrefix}/patient/:pat_uuid`, authMiddleware, patientCtrl.deleteCtrl);
 }
 
 export default configurePatientRoutes;
