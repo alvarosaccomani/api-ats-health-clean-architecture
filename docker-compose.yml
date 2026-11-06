@@ -1,0 +1,35 @@
+version: '3.8'
+services:
+  api-ats-health-clean-architecture:
+    container_name: api-ats-health-clean-architecture
+    build: .
+    ports:
+      - "3002:3002"
+    environment:
+      - PORT
+      - DB_HOST
+      - DB_USER
+      - DB_PASSWORD
+      - DB_PORT
+      - DB_NAME
+      - BASE_URL_API
+      - JWT_SECRET
+      - EMAIL_FROM
+      - EMAIL_PASSWORD
+      - URL_CONFIRMATION
+      - URL_RESET
+      - CENTRAL_API_URL
+            
+      - R2_ACCOUNT_ID
+      - R2_ACCESS_KEY_ID
+      - R2_SECRET_ACCESS_KEY
+      - R2_BUCKET_PUBLIC
+      - R2_BUCKET_PRIVATE
+      - R2_PUBLIC_URL
+      - STORAGE_APP_PREFIX
+    networks:
+      - pgvector_default
+
+networks:
+  pgvector_default:
+    external: true
