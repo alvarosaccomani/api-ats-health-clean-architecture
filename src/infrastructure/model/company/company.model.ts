@@ -3,39 +3,39 @@ import { sequelize } from '../../db/sequelize';
 import { CompanyEntity } from "../../../domain/company/company.entity";
 import { SequelizeCompanySetting } from '../company-setting/company-setting.model';
 
-export class SequelizeCompany extends Model<CompanyEntity, Omit<CompanyEntity, 'id'>> {
+export class SequelizeCompany extends Model<CompanyEntity, Partial<CompanyEntity>> {
   declare cmp_uuid: string;
   declare cmp_name: string;
-  declare cmp_address: string;
-  declare cmp_lat: number;
-  declare cmp_lng: number;
-  declare cmp_phone: string;
-  declare cmp_email: string;
-  declare cmp_logo: string;
-  declare cmp_banner: string;
-  declare cmp_description: string;
-  declare cmp_whatsapp: string;
-  declare cmp_instagram: string;
-  declare cmp_facebook: string;
-  declare cmp_primarycolor: string;
-  declare cmp_isfeatured: boolean;
-  declare cmp_status: string;  //-- active, inactive, pending
+  declare cmp_address: string | null;
+  declare cmp_lat: number | null;
+  declare cmp_lng: number | null;
+  declare cmp_phone: string | null;
+  declare cmp_email: string | null;
+  declare cmp_logo: string | null;
+  declare cmp_banner: string | null;
+  declare cmp_description: string | null;
+  declare cmp_whatsapp: string | null;
+  declare cmp_instagram: string | null;
+  declare cmp_facebook: string | null;
+  declare cmp_primarycolor: string | null;
+  declare cmp_isfeatured: boolean | null;
+  declare cmp_status: string | null;  // active, inactive, pending
   declare cmp_createdat: Date;
   declare cmp_updatedat: Date;
 }
 
 SequelizeCompany.init({
   cmp_uuid: {
-    type: DataTypes.STRING, 
-    primaryKey: true/*,
-    autoIncrement: true*/
+    type: DataTypes.STRING(40), 
+    primaryKey: true,
+    allowNull: false
   },
   cmp_name: {
-    type: DataTypes.STRING,
-    allowNull: true
+    type: DataTypes.STRING(150),
+    allowNull: false
   },
   cmp_address: {
-    type: DataTypes.STRING,
+    type: DataTypes.TEXT,
     allowNull: true
   },
   cmp_lat: {
@@ -47,56 +47,61 @@ SequelizeCompany.init({
     allowNull: true
   },
   cmp_phone: {
-    type: DataTypes.STRING,
+    type: DataTypes.STRING(20),
     allowNull: true
   },
   cmp_email: {
-    type: DataTypes.STRING,
+    type: DataTypes.STRING(100),
     allowNull: true
   },
   cmp_logo: {
-    type: DataTypes.STRING,
+    type: DataTypes.TEXT,
     allowNull: true
   },
   cmp_banner: {
-    type: DataTypes.STRING,
+    type: DataTypes.TEXT,
     allowNull: true
   },
   cmp_description: {
-    type: DataTypes.STRING,
+    type: DataTypes.TEXT,
     allowNull: true
   },
   cmp_whatsapp: {
-    type: DataTypes.STRING,
+    type: DataTypes.STRING(20),
     allowNull: true
   },
   cmp_instagram: {
-    type: DataTypes.STRING,
+    type: DataTypes.STRING(100),
     allowNull: true
   },
   cmp_facebook: {
-    type: DataTypes.STRING,
+    type: DataTypes.STRING(100),
     allowNull: true
   },
   cmp_primarycolor: {
-    type: DataTypes.STRING,
+    type: DataTypes.STRING(10),
+    defaultValue: '#1890ff',
     allowNull: true
   },
   cmp_isfeatured: {
     type: DataTypes.BOOLEAN,
+    defaultValue: false,
     allowNull: true
   },
   cmp_status: {
-    type: DataTypes.STRING,
+    type: DataTypes.STRING(20),
+    defaultValue: 'active',
     allowNull: true
   },
   cmp_createdat: {
     type: DataTypes.DATE,
-    allowNull: true
+    defaultValue: DataTypes.NOW,
+    allowNull: false
   },
   cmp_updatedat: {
     type: DataTypes.DATE,
-    allowNull: true
+    defaultValue: DataTypes.NOW,
+    allowNull: false
   }
 }, {
   sequelize,
