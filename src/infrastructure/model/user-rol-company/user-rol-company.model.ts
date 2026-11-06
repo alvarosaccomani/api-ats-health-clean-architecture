@@ -6,7 +6,7 @@ import { SequelizeUser } from '../user/user.model';
 import { SequelizeRol } from '../rol/rol.model';
 import { SequelizeRolPermission } from '../rol-permission/rol-permission.model';
 
-export class SequelizeUserRolCompany extends Model<UserRolCompanyEntity, Omit<UserRolCompanyEntity, 'id'>> {
+export class SequelizeUserRolCompany extends Model<UserRolCompanyEntity, Omit<UserRolCompanyEntity, 'id'>> implements UserRolCompanyEntity {
   declare cmp_uuid: string;
   declare usr_uuid: string;
   declare rol_uuid: string;
@@ -16,25 +16,27 @@ export class SequelizeUserRolCompany extends Model<UserRolCompanyEntity, Omit<Us
 
 SequelizeUserRolCompany.init({
   cmp_uuid: {
-    type: DataTypes.STRING, 
+    type: DataTypes.STRING(40), 
     primaryKey: true
   },
   usr_uuid: {
-    type: DataTypes.STRING,
+    type: DataTypes.STRING(40),
     primaryKey: true
   },
   rol_uuid: {
-    type: DataTypes.STRING,
+    type: DataTypes.STRING(40),
     primaryKey: true,
     allowNull: false
   },
   usrrolcmp_createdat: {
     type: DataTypes.DATE,
-    allowNull: true
+    allowNull: false,
+    defaultValue: DataTypes.NOW
   },
   usrrolcmp_updatedat: {
     type: DataTypes.DATE,
-    allowNull: true
+    allowNull: false,
+    defaultValue: DataTypes.NOW
   }
 }, {
   sequelize,
@@ -43,6 +45,7 @@ SequelizeUserRolCompany.init({
   updatedAt: 'usrrolcmp_updatedat',
   tableName: 'usrrolcmp_usersrolescompanies'
 });
+
 SequelizeUserRolCompany.belongsTo(SequelizeCompany, {
   as: 'cmp',
   foreignKey: 'cmp_uuid'
