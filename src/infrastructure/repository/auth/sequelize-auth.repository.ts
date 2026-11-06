@@ -6,7 +6,7 @@ import { SequelizeUser } from "../../model/user/user.model";
 import { createToken } from "../../services/jwt.service";
 
 export class SequelizeAuthRepository implements AuthRepository {
-    async loginUser(usr_nick: string, usr_password: string, gettoken: boolean): Promise<UserEntity | string | null> {
+    async loginUser(usr_nick: string, usr_password: string, gettoken: boolean, options?: { transaction?: any }): Promise<UserEntity | string | null> {
         try {
             const user = await SequelizeUser.findOne({ 
                 where: { 
@@ -14,14 +14,15 @@ export class SequelizeAuthRepository implements AuthRepository {
                         { usr_nick: usr_nick ?? null },
                         { usr_email: usr_nick ?? null }
                     ]
-                }
+                },
+                transaction: options?.transaction
             });            
-            if(!user) {
+            if (!user) {
                 throw new Error(`No hay usuario registrado con el usuario o email "${usr_nick}"`);
             }
             
             const isPasswordValid = await bcrypt.compare(usr_password, user.dataValues.usr_password);
-            if(!isPasswordValid) {
+            if (!isPasswordValid) {
                 throw new Error('El password es incorrecto');
             }
             
@@ -40,7 +41,7 @@ export class SequelizeAuthRepository implements AuthRepository {
                 throw new Error(err.message || 'Error de conexión con el Kernel Central para validar el estado de confirmación.');
             }
             
-            if(gettoken) {
+            if (gettoken) {
                 return createToken(user.dataValues);
             }
             
@@ -53,22 +54,23 @@ export class SequelizeAuthRepository implements AuthRepository {
         }
     }
 
-    async confirmAccount(usr_confirmationtoken: string): Promise<UserEntity | null> {
+    async confirmAccount(usr_confirmationtoken: string, options?: { transaction?: any }): Promise<UserEntity | null> {
         throw new Error('La confirmación de cuenta se realiza a través del Kernel Central.');
     }
 
-    async forgotPassword(user: UserEntity): Promise<UserEntity | null> {
+    async forgotPassword(user: UserEntity, options?: { transaction?: any }): Promise<UserEntity | null> {
         throw new Error('La recuperación de contraseña se realiza a través del Kernel Central.');
     }
 
-    async findUserByResetToken(token: string, expirationDate: Date): Promise<UserEntity | null> {
+    async findUserByResetToken(token: string, expirationDate: Date, options?: { transaction?: any }): Promise<UserEntity | null> {
         return null;
     }
 
-    async findUserByNick(usr_nick: string): Promise<UserEntity | null> {
+    async findUserByNick(usr_nick: string, options?: { transaction?: any }): Promise<UserEntity | null> {
         try {
             const user = await SequelizeUser.findOne({
-                where: { usr_nick }
+                where: { usr_nick },
+                transaction: options?.transaction
             });
             return user ? (user.dataValues as UserEntity) : null;
         } catch (error) {
@@ -76,12 +78,13 @@ export class SequelizeAuthRepository implements AuthRepository {
         }
     }
 
-    async findUserByEmail(usr_email: string): Promise<UserEntity | null> {
+    async findUserByEmail(usr_email: string, options?: { transaction?: any }): Promise<UserEntity | null> {
         try {
             const user = await SequelizeUser.findOne({ 
                 where: { 
                     usr_email: usr_email ?? null
-                }
+                },
+                transaction: options?.transaction
             });
             return user ? (user.dataValues as UserEntity) : null;
         } catch (error: any) {
@@ -90,12 +93,15 @@ export class SequelizeAuthRepository implements AuthRepository {
         }
     }
 
-    async updatePassword(usr_uuid: string, newPassword: string): Promise<void> {
+    async updatePassword(usr_uuid: string, newPassword: string, options?: { transaction?: any }): Promise<void> {
         try {
             const hashedPassword = await bcrypt.hash(newPassword, 10);
             await SequelizeUser.update(
                 { usr_password: hashedPassword },
-                { where: { usr_uuid } }
+                { 
+                    where: { usr_uuid },
+                    transaction: options?.transaction
+                }
             );
         } catch (error) {
             throw new Error('Error al actualizar la contraseña.');
