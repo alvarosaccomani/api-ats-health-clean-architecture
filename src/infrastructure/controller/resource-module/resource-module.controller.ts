@@ -17,14 +17,14 @@ export class ResourceModuleController {
             const page = (req.params.page ? parseInt(req.params.page) : null);
             const perPage = (req.params.perPage ? parseInt(req.params.perPage) : null);
             if (page && perPage) {
-                const items = await this.resourceModuleUseCase.getResourceModules()
+                const items = await this.resourceModuleUseCase.getResourceModules();
                 return res.status(200).send({
                     success: true,
                     message: 'Módulos de recursos retornados.',
                     ...paginator(items, page, perPage)
                 });
             } else {
-                const items = await this.resourceModuleUseCase.getResourceModules()
+                const items = await this.resourceModuleUseCase.getResourceModules();
                 return res.status(200).send({
                     success: true,
                     message: 'Módulos de recursos retornados.',
@@ -36,7 +36,7 @@ export class ResourceModuleController {
             return res.status(400).json({
                 success: false,
                 message: 'No se pudo recuperar los módulos de recursos.',
-                error: error.message, // Mensaje claro del error
+                error: error.message,
             });
         }
     }
@@ -44,14 +44,14 @@ export class ResourceModuleController {
     public async getCtrl(req: Request, res: Response) {
         try {
             const remo_uuid = req.params.remo_uuid;
-            if(!remo_uuid || remo_uuid.toLowerCase() === 'null' || remo_uuid.toLowerCase() === 'undefined') {
+            if (!remo_uuid || remo_uuid.toLowerCase() === 'null' || remo_uuid.toLowerCase() === 'undefined') {
                 return res.status(400).json({
                     success: false,
                     message: 'No se pudo recuperar el módulo de recurso.',
                     error: 'Debe proporcionar un Id de módulo de recurso.'
                 });
             }
-            const resourceModule = await this.resourceModuleUseCase.getDetailResourceModule(`${remo_uuid}`)
+            const resourceModule = await this.resourceModuleUseCase.getDetailResourceModule(`${remo_uuid}`);
             return res.status(200).send({
                 success: true,
                 message: 'Módulo de recurso retornado.',
@@ -62,7 +62,7 @@ export class ResourceModuleController {
             return res.status(400).json({
                 success: false,
                 message: 'No se pudo recuperar el módulo de recurso.',
-                error: error.message, // Mensaje claro del error
+                error: error.message,
             });
         }
     }
@@ -70,23 +70,23 @@ export class ResourceModuleController {
     public async insertCtrl({ body }: Request, res: Response) {
         try {
             const remo_name = body.remo_name;
-            if(!remo_name) {
+            if (!remo_name) {
                 return res.status(400).json({
                     success: false,
                     message: 'No se pudo insertar el módulo de recurso.',
                     error: 'Debe proporcionar un Nombre para el módulo de recurso.'
-                })
-            };
+                });
+            }
             const resourceModuleByName = await this.resourceModuleUseCase.findResourceModuleByName(remo_name);
-            if(resourceModuleByName) {
+            if (resourceModuleByName) {
                 return res.status(400).json({
                     success: false,
                     message: 'No se pudo insertar el módulo de recurso.',
                     error: `El nombre ${remo_name} de módulo de recurso ya existe.`
                 });
             }
-            const resourceModule = await this.resourceModuleUseCase.createResourceModule(body)
-            return res.status(200).json({
+            const resourceModule = await this.resourceModuleUseCase.createResourceModule(body);
+            return res.status(201).json({
                 success: true,
                 message: 'Módulo de recurso insertado.',
                 data: resourceModule
@@ -96,7 +96,7 @@ export class ResourceModuleController {
             return res.status(400).json({
                 success: false,
                 message: 'No se pudo insertar el módulo de recurso.',
-                error: error.message, // Mensaje claro del error
+                error: error.message,
             });
         }
     }
@@ -105,22 +105,22 @@ export class ResourceModuleController {
         try {
             const remo_uuid = req.params.remo_uuid;
             const update = req.body;
-            if(!update.remo_name) {
+            if (!update.remo_name) {
                 return res.status(400).json({
                     success: false,
                     message: 'No se pudo actualizar el módulo de recurso.',
                     error: 'Debe proporcionar un Nombre para el módulo de recurso.'
-                })
-            };
+                });
+            }
             const resourceModuleByName = await this.resourceModuleUseCase.findResourceModuleByName(update.remo_name, update.remo_uuid);
-            if(resourceModuleByName) {
+            if (resourceModuleByName) {
                 return res.status(400).json({
                     success: false,
                     message: 'No se pudo actualizar el módulo de recurso.',
                     error: `El nombre ${update.remo_name} de módulo de recurso ya existe.`
                 });
             }
-            const resourceModule = await this.resourceModuleUseCase.updateResourceModule(remo_uuid, update)
+            const resourceModule = await this.resourceModuleUseCase.updateResourceModule(remo_uuid, update);
             return res.status(200).json({
                 success: true,
                 message: 'Módulo de recurso actualizado.',
@@ -131,7 +131,7 @@ export class ResourceModuleController {
             return res.status(400).json({
                 success: false,
                 message: 'No se pudo actualizar el módulo de recurso.',
-                error: error.message, // Mensaje claro del error
+                error: error.message,
             });
         }
     }
@@ -139,14 +139,14 @@ export class ResourceModuleController {
     public async deleteCtrl(req: Request, res: Response) {
         try {
             const remo_uuid = req.params.remo_uuid;
-            if(!remo_uuid) {
+            if (!remo_uuid) {
                 return res.status(400).json({
                     success: false,
                     message: 'No se pudo eliminar el módulo de recurso.',
                     error: 'Debe proporcionar un Id de módulo de recurso.'
                 });
-            };
-            const resourceModule = await this.resourceModuleUseCase.deleteResourceModule(remo_uuid)
+            }
+            const resourceModule = await this.resourceModuleUseCase.deleteResourceModule(remo_uuid);
             return res.status(200).json({
                 success: true,
                 message: 'Módulo de recurso eliminado.',
@@ -157,7 +157,7 @@ export class ResourceModuleController {
             return res.status(400).json({
                 success: false,
                 message: 'No se pudo eliminar el módulo de recurso.',
-                error: error.message, // Mensaje claro del error
+                error: error.message,
             });
         }
     }
