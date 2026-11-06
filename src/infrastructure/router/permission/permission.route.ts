@@ -1,4 +1,5 @@
 import { Express } from "express";
+import { authMiddleware } from "../../middlewares/auth.middleware";
 import { SequelizeRepository } from "../../repository/permission/sequelize-permission.repository";
 import { PermissionUseCase } from "../../../application/permission/permission-use-case";
 import { PermissionController } from "../../controller/permission/permission.controller";
@@ -61,7 +62,7 @@ function configurePermissionRoutes(app: Express, socketAdapter: SocketAdapter) {
      *       400:
      *         description: Error al obtener permisos.
      */
-    app.get(`/${process.env.BASE_URL_API}/permissions/:filter?/:page?/:perPage?`, permissionCtrl.getAllCtrl);
+    app.get(`/${process.env.BASE_URL_API}/permissions/:filter?/:page?/:perPage?`, authMiddleware, permissionCtrl.getAllCtrl);
 
     /**
      * @swagger
@@ -92,7 +93,7 @@ function configurePermissionRoutes(app: Express, socketAdapter: SocketAdapter) {
      *       400:
      *         description: Permiso no encontrado.
      */
-    app.get(`/${process.env.BASE_URL_API}/permission/:per_uuid`, permissionCtrl.getCtrl);
+    app.get(`/${process.env.BASE_URL_API}/permission/:per_uuid`, authMiddleware, permissionCtrl.getCtrl);
 
     /**
      * @swagger
@@ -108,7 +109,7 @@ function configurePermissionRoutes(app: Express, socketAdapter: SocketAdapter) {
      *           schema:
      *             $ref: '#/components/schemas/CreatePermissionDto'
      *     responses:
-     *       200:
+     *       201:
      *         description: Permiso insertado con éxito.
      *         content:
      *           application/json:
@@ -122,7 +123,7 @@ function configurePermissionRoutes(app: Express, socketAdapter: SocketAdapter) {
      *       400:
      *         description: Error al crear permiso.
      */
-    app.post(`/${process.env.BASE_URL_API}/permission`, permissionCtrl.insertCtrl);
+    app.post(`/${process.env.BASE_URL_API}/permission`, authMiddleware, permissionCtrl.insertCtrl);
 
     /**
      * @swagger
@@ -150,7 +151,7 @@ function configurePermissionRoutes(app: Express, socketAdapter: SocketAdapter) {
      *       400:
      *         description: Error al actualizar permiso.
      */
-    app.put(`/${process.env.BASE_URL_API}/permission/:per_uuid`, permissionCtrl.updateCtrl);
+    app.put(`/${process.env.BASE_URL_API}/permission/:per_uuid`, authMiddleware, permissionCtrl.updateCtrl);
 
     /**
      * @swagger
@@ -172,7 +173,7 @@ function configurePermissionRoutes(app: Express, socketAdapter: SocketAdapter) {
      *       400:
      *         description: Error al eliminar permiso.
      */
-    app.delete(`/${process.env.BASE_URL_API}/permission/:per_uuid`, permissionCtrl.deleteCtrl);
+    app.delete(`/${process.env.BASE_URL_API}/permission/:per_uuid`, authMiddleware, permissionCtrl.deleteCtrl);
 }
 
 export default configurePermissionRoutes;
