@@ -19,10 +19,10 @@ export class UserUseCase {
         this.findSocketUser = this.findSocketUser.bind(this);
     }
 
-    public async getUsers() {
+    public async getUsers(options?: { transaction?: any }) {
         try {
-            const users = await this.userRepository.getUsers();
-            if(!users) {
+            const users = await this.userRepository.getUsers(options);
+            if (!users) {
                 throw new Error('No hay usuarios.');
             }
             return users.map(user => ({
@@ -44,10 +44,10 @@ export class UserUseCase {
         }
     }
 
-    public async getDetailUser(usr_uuid: string) {
+    public async getDetailUser(usr_uuid: string, options?: { transaction?: any }) {
         try {
-            const user = await this.userRepository.findUserById(usr_uuid);
-            if(!user) {
+            const user = await this.userRepository.findUserById(usr_uuid, options);
+            if (!user) {
                 throw new Error(`No hay usuario con el Id: ${usr_uuid}`);
             }
             return {
@@ -69,31 +69,40 @@ export class UserUseCase {
         }
     }
 
-    public async getUserByEmail(usr_email: string) {
-        const user = await this.userRepository.findUserByEmail(usr_email);
-        if(!user) {
-            throw new Error(`No hay usuario con el email: ${usr_email}`);
+    public async getUserByEmail(usr_email: string, options?: { transaction?: any }) {
+        try {
+            const user = await this.userRepository.findUserByEmail(usr_email, options);
+            if (!user) {
+                throw new Error(`No hay usuario con el email: ${usr_email}`);
+            }
+            return {
+                usr_uuid: user.usr_uuid,
+                usr_name: user.usr_name,
+                usr_surname: user.usr_surname,
+                usr_image: user.usr_image,
+                usr_email: user.usr_email,
+                usr_nick: user.usr_nick,
+                usr_bio: user.usr_bio,
+                usr_socket: user.usr_socket,
+                usr_online: user.usr_online,
+                usr_createdat: TimezoneConverter.toIsoStringInTimezone(user.usr_createdat, 'America/Buenos_Aires'),
+                usr_updatedat: TimezoneConverter.toIsoStringInTimezone(user.usr_updatedat, 'America/Buenos_Aires')
+            };
+        } catch (error: any) {
+            console.error('Error en getUserByEmail (use case):', error.message);
+            throw error;
         }
-        return {
-            usr_uuid: user.usr_uuid,
-            usr_name: user.usr_name,
-            usr_surname: user.usr_surname,
-            usr_image: user.usr_image,
-            usr_email: user.usr_email,
-            usr_nick: user.usr_nick,
-            usr_bio: user.usr_bio,
-            usr_socket: user.usr_socket,
-            usr_online: user.usr_online,
-            usr_createdat: TimezoneConverter.toIsoStringInTimezone(user.usr_createdat, 'America/Buenos_Aires'),
-            usr_updatedat: TimezoneConverter.toIsoStringInTimezone(user.usr_updatedat, 'America/Buenos_Aires')
-        };
     }
 
-    public async registerUser({ usr_uuid, usr_name, usr_surname, usr_password, usr_image, usr_email, usr_nick, usr_bio, usr_socket, usr_online } : { usr_uuid: string, usr_name: string, usr_surname: string, usr_password: string, usr_image: string, usr_email: string, usr_nick: string, usr_bio: string, usr_socket: string, usr_online: boolean }) {
+    public async registerUser(
+        { usr_uuid, usr_name, usr_surname, usr_password, usr_image, usr_email, usr_nick, usr_bio, usr_socket, usr_online }: 
+        { usr_uuid: string; usr_name: string; usr_surname: string; usr_password: string; usr_image?: string | null; usr_email: string; usr_nick: string; usr_bio?: string | null; usr_socket?: string | null; usr_online?: boolean },
+        options?: { transaction?: any }
+    ) {
         try {
             const userValue = new UserValue({ usr_uuid, usr_name, usr_surname, usr_password, usr_image, usr_email, usr_nick, usr_bio, usr_socket, usr_online });
-            const userCreated = await this.userRepository.registerUser(userValue);
-            if(!userCreated) {
+            const userCreated = await this.userRepository.registerUser(userValue, options);
+            if (!userCreated) {
                 throw new Error(`No se pudo insertar el usuario.`);
             }
             return {
@@ -115,10 +124,15 @@ export class UserUseCase {
         }
     }
 
-    public async updateUser(usr_uuid: string, { usr_name, usr_surname, usr_password, usr_image, usr_email, usr_nick, usr_bio, usr_socket, usr_online } : { usr_name: string, usr_surname: string, usr_password: string, usr_image: string, usr_email: string, usr_nick: string, usr_bio: string, usr_socket: string, usr_online: boolean }) {
+    public async updateUser(
+        usr_uuid: string, 
+        { usr_name, usr_surname, usr_password, usr_image, usr_email, usr_nick, usr_bio, usr_socket, usr_online }: 
+        { usr_name?: string; usr_surname?: string; usr_password?: string; usr_image?: string | null; usr_email?: string; usr_nick?: string; usr_bio?: string | null; usr_socket?: string | null; usr_online?: boolean },
+        options?: { transaction?: any }
+    ) {
         try {
-            const userUpdated = await this.userRepository.updateUser(usr_uuid, { usr_name, usr_surname, usr_password, usr_image, usr_email, usr_nick, usr_bio, usr_socket, usr_online });
-            if(!userUpdated) {
+            const userUpdated = await this.userRepository.updateUser(usr_uuid, { usr_name, usr_surname, usr_password, usr_image, usr_email, usr_nick, usr_bio, usr_socket, usr_online }, options);
+            if (!userUpdated) {
                 throw new Error(`No se pudo actualizar el usuario.`);
             }
             return {
@@ -140,10 +154,10 @@ export class UserUseCase {
         }
     }
 
-    public async deleteUser(usr_uuid: string) {
+    public async deleteUser(usr_uuid: string, options?: { transaction?: any }) {
         try {
-            const userDeleted = await this.userRepository.deleteUser(usr_uuid);
-            if(!userDeleted) {
+            const userDeleted = await this.userRepository.deleteUser(usr_uuid, options);
+            if (!userDeleted) {
                 throw new Error(`No se pudo eliminar el usuario.`);
             }
             return {
@@ -165,24 +179,25 @@ export class UserUseCase {
         }
     }
 
-    public async userExist(usr_nick: string, usr_email: string) {
+    public async userExist(usr_nick: string, usr_email: string, options?: { transaction?: any }) {
         try {
-            const user = await this.userRepository.userExist(usr_nick, usr_email)
-            if(user) {
-                throw new Error(`Ya existe un usuario con el nick ${usr_nick}.`);
-            }
-            return user
+            const user = await this.userRepository.userExist(usr_nick, usr_email, options);
+            return user;
         } catch (error: any) {
             console.error('Error en userExist (use case):', error.message);
             throw error;
         }
     }
 
-    public async saveUser({ usr_uuid, usr_name, usr_surname, usr_password, usr_image, usr_email, usr_nick, usr_bio, usr_socket, usr_online } : { usr_uuid: string, usr_name: string, usr_surname: string, usr_password: string, usr_image: string, usr_email: string, usr_nick: string, usr_bio: string, usr_socket: string, usr_online: boolean }) {
+    public async saveUser(
+        { usr_uuid, usr_name, usr_surname, usr_password, usr_image, usr_email, usr_nick, usr_bio, usr_socket, usr_online }: 
+        { usr_uuid: string; usr_name: string; usr_surname: string; usr_password: string; usr_image?: string | null; usr_email: string; usr_nick: string; usr_bio?: string | null; usr_socket?: string | null; usr_online?: boolean },
+        options?: { transaction?: any }
+    ) {
         try {
             const userValue = new UserValue({ usr_uuid, usr_name, usr_surname, usr_password, usr_image, usr_email, usr_nick, usr_bio, usr_socket, usr_online });
-            const userSaved = await this.userRepository.saveUser(userValue);
-            if(!userSaved) {
+            const userSaved = await this.userRepository.saveUser(userValue, options);
+            if (!userSaved) {
                 throw new Error(`No se pudo guardar el usuario.`);
             }
             return {
@@ -197,47 +212,43 @@ export class UserUseCase {
                 usr_online: userSaved.usr_online,
                 usr_createdat: TimezoneConverter.toIsoStringInTimezone(userSaved.usr_createdat, 'America/Buenos_Aires'),
                 usr_updatedat: TimezoneConverter.toIsoStringInTimezone(userSaved.usr_updatedat, 'America/Buenos_Aires')
-            }
+            };
         } catch (error: any) {
             console.error('Error en saveUser (use case):', error.message);
             throw error;
         }
     }
 
-    public async setSocketUser( usr_uuid: string = '', usr_socket: string = '', usr_online: boolean = true ) {
+    public async setSocketUser(usr_uuid: string = '', usr_socket: string = '', usr_online: boolean = true, options?: { transaction?: any }) {
         try {
-            const userSocket = await this.userRepository.setSocketUser(usr_uuid, usr_socket, usr_online);
-            return userSocket
+            const userSocket = await this.userRepository.setSocketUser(usr_uuid, usr_socket, usr_online, options);
+            return userSocket;
         } catch (error: any) {
             console.error('Error en setSocketUser (use case):', error.message);
             throw error;
         }
     }
 
-    public async findUserByNick(usr_nick: string) {
+    public async findUserByNick(usr_nick: string, options?: { transaction?: any }) {
         try {
-            const user = await this.userRepository.findUserByNick(usr_nick);
-
+            const user = await this.userRepository.findUserByNick(usr_nick, options);
             if (!user) {
                 throw new Error(`No se encontró ningún usuario con el nick ${usr_nick}.`);
             }
-
-            return user
+            return user;
         } catch (error: any) {
             console.error('Error en findUserByNick (use case):', error.message);
             throw error;
         }
     }
     
-    public async findSocketUser(usr_uuid: string) {
+    public async findSocketUser(usr_uuid: string, options?: { transaction?: any }) {
         try {
-            const userSocket = await this.userRepository.findSocketUser(usr_uuid);
-
+            const userSocket = await this.userRepository.findSocketUser(usr_uuid, options);
             if (!userSocket) {
                 throw new Error(`No se encontró el socket para el usuario con Id: ${usr_uuid}.`);
             }
-
-            return userSocket
+            return userSocket;
         } catch (error: any) {
             console.error('Error en findSocketUser (use case):', error.message);
             throw error;
