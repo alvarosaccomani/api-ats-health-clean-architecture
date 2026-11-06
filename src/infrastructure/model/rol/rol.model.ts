@@ -2,7 +2,7 @@ import { DataTypes, Model } from 'sequelize';
 import { sequelize } from '../../db/sequelize';
 import { RolEntity } from "../../../domain/rol/rol.entity";
 
-export class SequelizeRol extends Model<RolEntity, Omit<RolEntity, 'id'>> {
+export class SequelizeRol extends Model<RolEntity, Omit<RolEntity, 'id'>> implements RolEntity {
   declare rol_uuid: string;
   declare rol_name: string;
   declare rol_createdat: Date;
@@ -11,21 +11,23 @@ export class SequelizeRol extends Model<RolEntity, Omit<RolEntity, 'id'>> {
 
 SequelizeRol.init({
   rol_uuid: {
-    type: DataTypes.STRING, 
-    primaryKey: true/*,
-    autoIncrement: true*/
+    type: DataTypes.STRING(40), 
+    primaryKey: true
   },
   rol_name: {
-    type: DataTypes.STRING,
-    allowNull: true
+    type: DataTypes.STRING(50),
+    allowNull: false,
+    unique: true
   },
   rol_createdat: {
     type: DataTypes.DATE,
-    allowNull: true
+    allowNull: false,
+    defaultValue: DataTypes.NOW
   },
   rol_updatedat: {
     type: DataTypes.DATE,
-    allowNull: true
+    allowNull: false,
+    defaultValue: DataTypes.NOW
   }
 }, {
   sequelize,
