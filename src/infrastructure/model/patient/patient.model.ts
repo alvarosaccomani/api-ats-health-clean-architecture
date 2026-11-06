@@ -2,7 +2,7 @@ import { DataTypes, Model } from 'sequelize';
 import { sequelize } from '../../db/sequelize';
 import { PatientEntity } from "../../../domain/patient/patient.entity";
 
-export class SequelizePatient extends Model<PatientEntity> implements PatientEntity {
+export class SequelizePatient extends Model<PatientEntity, Partial<PatientEntity>> implements PatientEntity {
   declare cmp_uuid: string;
   declare pat_uuid: string;
   declare usr_uuid: string | null;
@@ -17,7 +17,7 @@ export class SequelizePatient extends Model<PatientEntity> implements PatientEnt
   declare pat_email: string | null;
   declare pat_medicalcoverage: string | null;
   declare pat_affiliatenumber: string | null;
-  declare pat_emergencycontact: string | null;
+  declare pat_emergencycontact: any | null;
   declare pat_active: boolean;
   declare pat_createdat: Date;
   declare pat_updatedat: Date;
@@ -26,11 +26,13 @@ export class SequelizePatient extends Model<PatientEntity> implements PatientEnt
 SequelizePatient.init({
   cmp_uuid: {
     type: DataTypes.STRING(40),
+    primaryKey: true,
     allowNull: false
   },
   pat_uuid: {
     type: DataTypes.STRING(40),
-    primaryKey: true
+    primaryKey: true,
+    allowNull: false
   },
   usr_uuid: {
     type: DataTypes.STRING(40),
@@ -81,7 +83,7 @@ SequelizePatient.init({
     allowNull: true
   },
   pat_emergencycontact: {
-    type: DataTypes.TEXT,
+    type: DataTypes.JSONB,
     allowNull: true
   },
   pat_active: {
@@ -91,11 +93,13 @@ SequelizePatient.init({
   },
   pat_createdat: {
     type: DataTypes.DATE,
-    allowNull: true
+    defaultValue: DataTypes.NOW,
+    allowNull: false
   },
   pat_updatedat: {
     type: DataTypes.DATE,
-    allowNull: true
+    defaultValue: DataTypes.NOW,
+    allowNull: false
   }
 }, {
   sequelize,
