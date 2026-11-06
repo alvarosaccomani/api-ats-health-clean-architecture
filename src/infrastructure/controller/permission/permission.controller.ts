@@ -17,14 +17,14 @@ export class PermissionController {
             const page = (req.params.page ? parseInt(req.params.page) : null);
             const perPage = (req.params.perPage ? parseInt(req.params.perPage) : null);
             if (page && perPage) {
-                const permission = await this.permissionUseCase.getPermissions()
+                const permission = await this.permissionUseCase.getPermissions();
                 return res.status(200).send({
                     success: true,
                     message: 'Permisos retornados.',
                     ...paginator(permission, page, perPage)
                 });
             } else {
-                const permission = await this.permissionUseCase.getPermissions()
+                const permission = await this.permissionUseCase.getPermissions();
                 return res.status(200).send({
                     success: true,
                     message: 'Permisos retornados.',
@@ -36,7 +36,7 @@ export class PermissionController {
             return res.status(400).json({
                 success: false,
                 message: 'No se pudo recuperar los permisos.',
-                error: error.message, // Mensaje claro del error
+                error: error.message,
             });
         }
     }
@@ -44,14 +44,14 @@ export class PermissionController {
     public async getCtrl(req: Request, res: Response) {
         try {
             const per_uuid = req.params.per_uuid;
-            if(!per_uuid || per_uuid.toLowerCase() === 'null' || per_uuid.toLowerCase() === 'undefined') {
+            if (!per_uuid || per_uuid.toLowerCase() === 'null' || per_uuid.toLowerCase() === 'undefined') {
                 return res.status(400).json({
                     success: false,
                     message: 'No se pudo recuperar el permiso.',
                     error: 'Debe proporcionar un Id de permiso.'
                 });
             }
-            const permission = await this.permissionUseCase.getDetailPermission(`${per_uuid}`)
+            const permission = await this.permissionUseCase.getDetailPermission(`${per_uuid}`);
             return res.status(200).send({
                 success: true,
                 message: 'Permiso retornado.',
@@ -62,7 +62,7 @@ export class PermissionController {
             return res.status(400).json({
                 success: false,
                 message: 'No se pudo recuperar el permiso.',
-                error: error.message, // Mensaje claro del error
+                error: error.message,
             });
         }
     }
@@ -70,23 +70,23 @@ export class PermissionController {
     public async insertCtrl({ body }: Request, res: Response) {
         try {
             const per_slug = body.per_slug;
-            if(!per_slug) {
+            if (!per_slug) {
                 return res.status(400).json({
                     success: false,
                     message: 'No se pudo insertar el permiso.',
                     error: 'Debe proporcionar un Nombre para el permiso.'
-                })
-            };
+                });
+            }
             const permissionByName = await this.permissionUseCase.findPermissionBySlug(per_slug);
-            if(permissionByName) {
+            if (permissionByName) {
                 return res.status(400).json({
                     success: false,
                     message: 'No se pudo insertar el permiso.',
                     error: `El nombre ${per_slug} de permiso ya existe.`
                 });
             }
-            const permission = await this.permissionUseCase.createPermission(body)
-            return res.status(200).json({
+            const permission = await this.permissionUseCase.createPermission(body);
+            return res.status(201).json({
                 success: true,
                 message: 'Permiso insertado.',
                 data: permission
@@ -96,7 +96,7 @@ export class PermissionController {
             return res.status(400).json({
                 success: false,
                 message: 'No se pudo insertar el permiso.',
-                error: error.message, // Mensaje claro del error
+                error: error.message,
             });
         }
     }
@@ -104,8 +104,15 @@ export class PermissionController {
     public async updateCtrl(req: Request, res: Response) {
         try {
             const per_uuid = req.params.per_uuid;
+            if (!per_uuid) {
+                return res.status(400).json({
+                    success: false,
+                    message: 'No se pudo actualizar el permiso.',
+                    error: 'Debe proporcionar un Id de permiso.'
+                });
+            }
             const update = req.body;
-            const permission = await this.permissionUseCase.updatePermission(per_uuid, update)
+            const permission = await this.permissionUseCase.updatePermission(per_uuid, update);
             return res.status(200).json({
                 success: true,
                 message: 'Permiso actualizado.',
@@ -116,7 +123,7 @@ export class PermissionController {
             return res.status(400).json({
                 success: false,
                 message: 'No se pudo actualizar el permiso.',
-                error: error.message, // Mensaje claro del error
+                error: error.message,
             });
         }
     }
@@ -124,14 +131,14 @@ export class PermissionController {
     public async deleteCtrl(req: Request, res: Response) {
         try {
             const per_uuid = req.params.per_uuid;
-            if(!per_uuid) {
+            if (!per_uuid) {
                 return res.status(400).json({
                     success: false,
                     message: 'No se pudo eliminar el permiso.',
                     error: 'Debe proporcionar un Id de permiso.'
                 });
-            };
-            const permission = await this.permissionUseCase.deletePermission(per_uuid)
+            }
+            const permission = await this.permissionUseCase.deletePermission(per_uuid);
             return res.status(200).json({
                 success: true,
                 message: 'Permiso eliminado.',
@@ -142,7 +149,7 @@ export class PermissionController {
             return res.status(400).json({
                 success: false,
                 message: 'No se pudo eliminar el permiso.',
-                error: error.message, // Mensaje claro del error
+                error: error.message,
             });
         }
     }
