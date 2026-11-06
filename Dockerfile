@@ -30,7 +30,7 @@ COPY --from=builder /app/dist ./dist
 # Copiar cualquier otro archivo necesario (ej: .env, assets, etc.)
 # COPY .env .  # si lo usas
 
-EXPOSE 3002
+EXPOSE 3008
 
 # Comando para ejecutar la app
 CMD ["node", "dist/app.js"]
