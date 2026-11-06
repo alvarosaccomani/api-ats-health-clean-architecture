@@ -15,11 +15,11 @@ export class PatientUseCase {
         this.findPatientByName = this.findPatientByName.bind(this);
     }
 
-    public async getPatients(cmp_uuid?: string) {
+    public async getPatients(cmp_uuid?: string, options?: { transaction?: any }) {
         try {
-            const patients = await this.patientRepository.getPatients(cmp_uuid);
+            const patients = await this.patientRepository.getPatients(cmp_uuid, options);
             if (!patients) {
-                throw new Error("No hay pacientes.");
+                return [];
             }
             return patients.map(patient => ({
                 ...patient,
@@ -32,9 +32,9 @@ export class PatientUseCase {
         }
     }
 
-    public async getDetailPatient(pat_uuid: string) {
+    public async getDetailPatient(pat_uuid: string, options?: { transaction?: any }) {
         try {
-            const patient = await this.patientRepository.findPatientById(pat_uuid);
+            const patient = await this.patientRepository.findPatientById(pat_uuid, options);
             if (!patient) {
                 throw new Error(`No hay paciente con el Id: ${pat_uuid}`);
             }
@@ -49,10 +49,10 @@ export class PatientUseCase {
         }
     }
 
-    public async createPatient(patientData: any) {
+    public async createPatient(patientData: any, options?: { transaction?: any }) {
         try {
             const patientValue = new PatientValue(patientData);
-            const patientCreated = await this.patientRepository.createPatient(patientValue);
+            const patientCreated = await this.patientRepository.createPatient(patientValue, options);
             if (!patientCreated) {
                 throw new Error("No se ha registrado el paciente");
             }
@@ -67,9 +67,9 @@ export class PatientUseCase {
         }
     }
 
-    public async updatePatient(pat_uuid: string, patientData: PatientUpdateData) {
+    public async updatePatient(pat_uuid: string, patientData: PatientUpdateData, options?: { transaction?: any }) {
         try {
-            const patientUpdated = await this.patientRepository.updatePatient(pat_uuid, patientData);
+            const patientUpdated = await this.patientRepository.updatePatient(pat_uuid, patientData, options);
             if (!patientUpdated) {
                 throw new Error("No se ha actualizado el paciente");
             }
@@ -84,22 +84,26 @@ export class PatientUseCase {
         }
     }
 
-    public async deletePatient(pat_uuid: string) {
+    public async deletePatient(pat_uuid: string, options?: { transaction?: any }) {
         try {
-            const patientDeleted = await this.patientRepository.deletePatient(pat_uuid);
+            const patientDeleted = await this.patientRepository.deletePatient(pat_uuid, options);
             if (!patientDeleted) {
                 throw new Error("No se ha eliminado el paciente");
             }
-            return patientDeleted;
+            return {
+                ...patientDeleted,
+                pat_createdat: TimezoneConverter.toIsoStringInTimezone(patientDeleted.pat_createdat, 'America/Buenos_Aires'),
+                pat_updatedat: TimezoneConverter.toIsoStringInTimezone(patientDeleted.pat_updatedat, 'America/Buenos_Aires')
+            };
         } catch (error: any) {
             console.error("Error en deletePatient (use case):", error.message);
             throw error;
         }
     }
 
-    public async findPatientByName(pat_name: string, excludeUuid?: string | null) {
+    public async findPatientByName(pat_name: string, excludeUuid?: string | null, options?: { transaction?: any }) {
         try {
-            const patient = await this.patientRepository.findPatientByName(pat_name, excludeUuid);
+            const patient = await this.patientRepository.findPatientByName(pat_name, excludeUuid, options);
             return patient;
         } catch (error: any) {
             console.error("Error en findPatientByName (use case):", error.message);
