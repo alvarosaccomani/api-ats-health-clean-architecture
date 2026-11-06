@@ -3,7 +3,7 @@ services:
     container_name: api-ats-health-clean-architecture
     build: .
     ports:
-      - "3002:3002"
+      - "3008:3008"
     environment:
       - PORT
       - DB_HOST
