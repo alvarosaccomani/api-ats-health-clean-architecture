@@ -1,10 +1,10 @@
 import { PatientEntity, PatientUpdateData } from "./patient.entity";
 
 export interface PatientRepository {
-    getPatients(cmp_uuid?: string): Promise<PatientEntity[] | null>;
-    findPatientById(pat_uuid: string): Promise<PatientEntity | null>;
-    createPatient(patient: PatientEntity): Promise<PatientEntity | null>;
-    updatePatient(pat_uuid: string, patient: PatientUpdateData): Promise<PatientEntity | null>;
-    deletePatient(pat_uuid: string): Promise<PatientEntity | null>;
-    findPatientByName(pat_name: string, excludeUuid?: string | null): Promise<PatientEntity | null>;
+    getPatients(cmp_uuid?: string, options?: { transaction?: any }): Promise<PatientEntity[] | null>;
+    findPatientById(pat_uuid: string, options?: { transaction?: any }): Promise<PatientEntity | null>;
+    createPatient(patient: PatientEntity, options?: { transaction?: any }): Promise<PatientEntity | null>;
+    updatePatient(pat_uuid: string, patient: PatientUpdateData, options?: { transaction?: any }): Promise<PatientEntity | null>;
+    deletePatient(pat_uuid: string, options?: { transaction?: any }): Promise<PatientEntity | null>;
+    findPatientByName(pat_name: string, excludeUuid?: string | null, options?: { transaction?: any }): Promise<PatientEntity | null>;
 }
