@@ -14,10 +14,10 @@ export class RolUseCase {
         this.findRolByName = this.findRolByName.bind(this);
     }
 
-    public async getRoles() {
+    public async getRoles(options?: { transaction?: any }) {
         try {
-            const roles = await this.rolRepository.getRoles();
-            if(!roles) {
+            const roles = await this.rolRepository.getRoles(options);
+            if (!roles) {
                 throw new Error('No hay roles.');
             }
             return roles.map(rol => ({
@@ -28,14 +28,14 @@ export class RolUseCase {
             }));
         } catch (error: any) {
             console.error('Error en getRoles (use case):', error.message);
-            throw error; // Propagar el error hacia el controlador
+            throw error;
         }
     }
 
-    public async getDetailRol(rol_uuid: string) {
+    public async getDetailRol(rol_uuid: string, options?: { transaction?: any }) {
         try {
-            const rol = await this.rolRepository.findRolById(rol_uuid);
-            if(!rol) {
+            const rol = await this.rolRepository.findRolById(rol_uuid, options);
+            if (!rol) {
                 throw new Error(`No hay rol con el Id: ${rol_uuid}`);
             }
             return {
@@ -46,15 +46,15 @@ export class RolUseCase {
             };
         } catch (error: any) {
             console.error('Error en getDetailRol (use case):', error.message);
-            throw error; // Propagar el error hacia el controlador
+            throw error;
         }
     }
     
-    public async createRol({ rol_uuid, rol_name } : { rol_uuid: string, rol_name: string }) {
+    public async createRol({ rol_uuid, rol_name }: { rol_uuid?: string; rol_name: string }, options?: { transaction?: any }) {
         try {
             const rolValue = new RolValue({ rol_uuid, rol_name });
-            const rolCreated = await this.rolRepository.createRol(rolValue);
-            if(!rolCreated) {
+            const rolCreated = await this.rolRepository.createRol(rolValue, options);
+            if (!rolCreated) {
                 throw new Error(`No se pudo insertar el rol.`);
             }
             return {
@@ -65,14 +65,14 @@ export class RolUseCase {
             };
         } catch (error: any) {
             console.error('Error en createRol (use case):', error.message);
-            throw error; // Propagar el error hacia el controlador
+            throw error;
         }
     }
 
-    public async updateRol(rol_uuid: string, { rol_name } : { rol_name: string }) {
+    public async updateRol(rol_uuid: string, { rol_name }: { rol_name: string }, options?: { transaction?: any }) {
         try {
-            const rolUpdated = await this.rolRepository.updateRol(rol_uuid, { rol_name });
-            if(!rolUpdated) {
+            const rolUpdated = await this.rolRepository.updateRol(rol_uuid, { rol_name }, options);
+            if (!rolUpdated) {
                 throw new Error(`No se pudo actualizar el rol.`);
             }
             return {
@@ -83,14 +83,14 @@ export class RolUseCase {
             };
         } catch (error: any) {
             console.error('Error en updateRol (use case):', error.message);
-            throw error; // Propagar el error hacia el controlador
+            throw error;
         }
     }
 
-    public async deleteRol(rol_uuid: string) {
+    public async deleteRol(rol_uuid: string, options?: { transaction?: any }) {
         try {
-            const rolDeleted = await this.rolRepository.deleteRol(rol_uuid);
-            if(!rolDeleted) {
+            const rolDeleted = await this.rolRepository.deleteRol(rol_uuid, options);
+            if (!rolDeleted) {
                 throw new Error(`No se pudo eliminar el rol.`);
             }
             return {
@@ -101,21 +101,17 @@ export class RolUseCase {
             };
         } catch (error: any) {
             console.error('Error en deleteRol (use case):', error.message);
-            throw error; // Propagar el error hacia el controlador
+            throw error;
         }
     }
 
-    public async findRolByName(rol_name: string, excludeUuid?: string) {
+    public async findRolByName(rol_name: string, excludeUuid?: string | null, options?: { transaction?: any }) {
         try {
-            const rol = await this.rolRepository.findRolByName(rol_name, excludeUuid)
-            if(rol) {
-                throw new Error(`Ya existe un rol con el nombre ${rol_name}.`);
-            }
-            return rol
+            const rol = await this.rolRepository.findRolByName(rol_name, excludeUuid, options);
+            return rol;
         } catch (error: any) {
             console.error('Error en findRolByName (use case):', error.message);
-            throw error; // Propagar el error hacia el controlador
+            throw error;
         }
     }
-
 }
