@@ -4,7 +4,7 @@ import SocketAdapter from "../../services/socketAdapter";
 import { paginator } from "../../services/paginator.service";
 
 export class CompanyController {
-    constructor(private companyUseCase: CompanyUseCase, private socketAdapter: SocketAdapter) {
+    constructor(private companyUseCase: CompanyUseCase, private socketAdapter?: SocketAdapter) {
         this.getAllCtrl = this.getAllCtrl.bind(this);
         this.getCtrl = this.getCtrl.bind(this);
         this.insertCtrl = this.insertCtrl.bind(this);
@@ -14,29 +14,29 @@ export class CompanyController {
 
     public async getAllCtrl(req: Request, res: Response) {
         try {
-            const page = (req.params.page ? parseInt(req.params.page) : null);
-            const perPage = (req.params.perPage ? parseInt(req.params.perPage) : null);
+            const page = req.query.page ? parseInt(req.query.page as string) : (req.params.page ? parseInt(req.params.page) : null);
+            const perPage = req.query.perPage ? parseInt(req.query.perPage as string) : (req.params.perPage ? parseInt(req.params.perPage) : null);
+            const companies = await this.companyUseCase.getCompanies();
+
             if (page && perPage) {
-                const company = await this.companyUseCase.getCompanies()
-                return res.status(200).send({
+                return res.status(200).json({
                     success: true,
                     message: 'Empresas retornadas.',
-                    ...paginator(company, page, perPage)
+                    ...paginator(companies, page, perPage)
                 });
             } else {
-                const company = await this.companyUseCase.getCompanies()
-                return res.status(200).send({
+                return res.status(200).json({
                     success: true,
                     message: 'Empresas retornadas.',
-                    data: company
+                    data: companies
                 });
             }
         } catch (error: any) {
-            console.error('Error en getAllCtrl (controller):', error.message);
+            console.error('Error en getAllCtrl (company controller):', error.message);
             return res.status(400).json({
                 success: false,
                 message: 'No se pudo recuperar las empresas.',
-                error: error.message, // Mensaje claro del error
+                error: error.message
             });
         }
     }
@@ -44,25 +44,25 @@ export class CompanyController {
     public async getCtrl(req: Request, res: Response) {
         try {
             const cmp_uuid = req.params.cmp_uuid;
-            if(!cmp_uuid || cmp_uuid.toLowerCase() === 'null' || cmp_uuid.toLowerCase() === 'undefined') {
+            if (!cmp_uuid || cmp_uuid.toLowerCase() === 'null' || cmp_uuid.toLowerCase() === 'undefined') {
                 return res.status(400).json({
                     success: false,
                     message: 'No se pudo recuperar la empresa.',
-                    error: 'Debe proporcionar un Id de company.'
+                    error: 'Debe proporcionar un Id de empresa válido.'
                 });
             }
-            const company = await this.companyUseCase.getDetailCompany(`${cmp_uuid}`)
-            return res.status(200).send({
+            const company = await this.companyUseCase.getDetailCompany(cmp_uuid);
+            return res.status(200).json({
                 success: true,
                 message: 'Empresa retornada.',
                 data: company
             });
         } catch (error: any) {
-            console.error('Error en getCtrl (controller):', error.message);
+            console.error('Error en getCtrl (company controller):', error.message);
             return res.status(400).json({
                 success: false,
                 message: 'No se pudo recuperar la empresa.',
-                error: error.message, // Mensaje claro del error
+                error: error.message
             });
         }
     }
@@ -70,33 +70,33 @@ export class CompanyController {
     public async insertCtrl({ body }: Request, res: Response) {
         try {
             const cmp_name = body.cmp_name;
-            if(!cmp_name) {
+            if (!cmp_name) {
                 return res.status(400).json({
                     success: false,
                     message: 'No se pudo insertar la empresa.',
                     error: 'Debe proporcionar un Nombre para la empresa.'
-                })
-            };
+                });
+            }
             const companyByName = await this.companyUseCase.findCompanyByName(cmp_name);
-            if(companyByName) {
+            if (companyByName) {
                 return res.status(400).json({
                     success: false,
                     message: 'No se pudo insertar la empresa.',
                     error: `El nombre ${cmp_name} de empresa ya existe.`
                 });
             }
-            const company = await this.companyUseCase.createCompany(body)
-            return res.status(200).json({
+            const company = await this.companyUseCase.createCompany(body);
+            return res.status(201).json({
                 success: true,
                 message: 'Empresa insertada.',
                 data: company
             });
         } catch (error: any) {
-            console.error('Error en insertCtrl (controller):', error.message);
+            console.error('Error en insertCtrl (company controller):', error.message);
             return res.status(400).json({
                 success: false,
                 message: 'No se pudo insertar la empresa.',
-                error: error.message, // Mensaje claro del error
+                error: error.message
             });
         }
     }
@@ -105,18 +105,35 @@ export class CompanyController {
         try {
             const cmp_uuid = req.params.cmp_uuid;
             const update = req.body;
-            const company = await this.companyUseCase.updateCompany(cmp_uuid, update)
+            if (!cmp_uuid) {
+                return res.status(400).json({
+                    success: false,
+                    message: 'No se pudo actualizar la empresa.',
+                    error: 'Debe proporcionar un Id de empresa.'
+                });
+            }
+            if (update.cmp_name) {
+                const companyByName = await this.companyUseCase.findCompanyByName(update.cmp_name, cmp_uuid);
+                if (companyByName) {
+                    return res.status(400).json({
+                        success: false,
+                        message: 'No se pudo actualizar la empresa.',
+                        error: `El nombre ${update.cmp_name} de empresa ya existe.`
+                    });
+                }
+            }
+            const company = await this.companyUseCase.updateCompany(cmp_uuid, update);
             return res.status(200).json({
                 success: true,
                 message: 'Empresa actualizada.',
                 data: company
             });
         } catch (error: any) {
-            console.error('Error en updateCtrl (controller):', error.message);
+            console.error('Error en updateCtrl (company controller):', error.message);
             return res.status(400).json({
                 success: false,
                 message: 'No se pudo actualizar la empresa.',
-                error: error.message, // Mensaje claro del error
+                error: error.message
             });
         }
     }
@@ -124,25 +141,25 @@ export class CompanyController {
     public async deleteCtrl(req: Request, res: Response) {
         try {
             const cmp_uuid = req.params.cmp_uuid;
-            if(!cmp_uuid) {
+            if (!cmp_uuid) {
                 return res.status(400).json({
                     success: false,
                     message: 'No se pudo eliminar la empresa.',
-                    error: 'Debe proporcionar un Id de company.'
+                    error: 'Debe proporcionar un Id de empresa.'
                 });
-            };
-            const company = await this.companyUseCase.deleteCompany(cmp_uuid)
+            }
+            const company = await this.companyUseCase.deleteCompany(cmp_uuid);
             return res.status(200).json({
                 success: true,
                 message: 'Empresa eliminada.',
                 data: company
             });
         } catch (error: any) {
-            console.error('Error en deleteCtrl (controller):', error.message);
+            console.error('Error en deleteCtrl (company controller):', error.message);
             return res.status(400).json({
                 success: false,
                 message: 'No se pudo eliminar la empresa.',
-                error: error.message, // Mensaje claro del error
+                error: error.message
             });
         }
     }
