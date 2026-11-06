@@ -22,7 +22,7 @@ WORKDIR /app
 
 # Solo instalar dependencias de producción
 COPY package*.json ./
-RUN npm ci --only=production
+RUN npm ci --omit=dev
 
 # Copiar los archivos compilados desde la etapa builder
 COPY --from=builder /app/dist ./dist
