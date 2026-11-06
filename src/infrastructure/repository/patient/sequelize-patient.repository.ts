@@ -2,9 +2,10 @@ import { Op } from "sequelize";
 import { PatientEntity, PatientUpdateData } from "../../../domain/patient/patient.entity";
 import { PatientRepository } from "../../../domain/patient/patient.repository";
 import { SequelizePatient } from "../../model/patient/patient.model";
+import { DbErrorHandler } from "../../utils/db-error-handler";
 
 export class SequelizePatientRepository implements PatientRepository {
-    async getPatients(cmp_uuid?: string): Promise<PatientEntity[] | null> {
+    async getPatients(cmp_uuid?: string, options?: { transaction?: any }): Promise<PatientEntity[] | null> {
         try {
             const whereCondition: any = {};
             if (cmp_uuid && cmp_uuid.toLowerCase() !== 'null' && cmp_uuid.toLowerCase() !== 'undefined') {
@@ -12,10 +13,11 @@ export class SequelizePatientRepository implements PatientRepository {
             }
             const patients = await SequelizePatient.findAll({
                 where: whereCondition,
-                order: [['pat_createdat', 'DESC']]
+                order: [['pat_createdat', 'DESC']],
+                transaction: options?.transaction
             });
             if (!patients) {
-                throw new Error("No hay pacientes");
+                return null;
             }
             return patients.map(p => p.get({ plain: true }) as PatientEntity);
         } catch (error: any) {
@@ -24,15 +26,16 @@ export class SequelizePatientRepository implements PatientRepository {
         }
     }
 
-    async findPatientById(pat_uuid: string): Promise<PatientEntity | null> {
+    async findPatientById(pat_uuid: string, options?: { transaction?: any }): Promise<PatientEntity | null> {
         try {
             const patient = await SequelizePatient.findOne({
                 where: {
                     pat_uuid: pat_uuid ?? null
-                }
+                },
+                transaction: options?.transaction
             });
             if (!patient) {
-                throw new Error(`No hay paciente con el Id: ${pat_uuid}`);
+                return null;
             }
             return patient.get({ plain: true }) as PatientEntity;
         } catch (error: any) {
@@ -41,7 +44,7 @@ export class SequelizePatientRepository implements PatientRepository {
         }
     }
 
-    async createPatient(patient: PatientEntity): Promise<PatientEntity | null> {
+    async createPatient(patient: PatientEntity, options?: { transaction?: any }): Promise<PatientEntity | null> {
         try {
             const result = await SequelizePatient.create({
                 cmp_uuid: patient.cmp_uuid,
@@ -62,76 +65,73 @@ export class SequelizePatientRepository implements PatientRepository {
                 pat_active: patient.pat_active ?? true,
                 pat_createdat: patient.pat_createdat,
                 pat_updatedat: patient.pat_updatedat
-            });
+            }, { transaction: options?.transaction });
 
             return result ? (result.get({ plain: true }) as PatientEntity) : null;
         } catch (error: any) {
+            if (error.name === 'SequelizeForeignKeyConstraintError') {
+                throw new Error(DbErrorHandler.handle(error));
+            }
             console.error("Error en createPatient:", error.message);
             throw error;
         }
     }
 
-    async updatePatient(pat_uuid: string, patient: PatientUpdateData): Promise<PatientEntity | null> {
+    async updatePatient(pat_uuid: string, patient: PatientUpdateData, options?: { transaction?: any }): Promise<PatientEntity | null> {
         try {
-            const [updatedCount, [updatedPatient]] = await SequelizePatient.update(
-                {
-                    cmp_uuid: patient.cmp_uuid,
-                    usr_uuid: patient.usr_uuid,
-                    pat_documentnumber: patient.pat_documentnumber,
-                    pat_firstname: patient.pat_firstname,
-                    pat_lastname: patient.pat_lastname,
-                    pat_birthdate: patient.pat_birthdate,
-                    pat_biologicalsex: patient.pat_biologicalsex,
-                    pat_genderidentity: patient.pat_genderidentity,
-                    pat_occupation: patient.pat_occupation,
-                    pat_phone: patient.pat_phone,
-                    pat_email: patient.pat_email,
-                    pat_medicalcoverage: patient.pat_medicalcoverage,
-                    pat_affiliatenumber: patient.pat_affiliatenumber,
-                    pat_emergencycontact: patient.pat_emergencycontact,
-                    pat_active: patient.pat_active
-                },
+            const [updatedCount] = await SequelizePatient.update(
+                patient,
                 {
                     where: { pat_uuid },
-                    returning: true
+                    transaction: options?.transaction
                 }
             );
 
             if (updatedCount === 0) {
-                throw new Error("No se ha actualizado el paciente");
+                return null;
             }
 
-            return updatedPatient.get({ plain: true }) as PatientEntity;
+            return await this.findPatientById(pat_uuid, options);
         } catch (error: any) {
+            if (error.name === 'SequelizeForeignKeyConstraintError') {
+                throw new Error(DbErrorHandler.handle(error));
+            }
             console.error("Error en updatePatient:", error.message);
             throw error;
         }
     }
 
-    async deletePatient(pat_uuid: string): Promise<PatientEntity | null> {
+    async deletePatient(pat_uuid: string, options?: { transaction?: any }): Promise<PatientEntity | null> {
         try {
-            const patient = await this.findPatientById(pat_uuid);
+            const patient = await this.findPatientById(pat_uuid, options);
+            if (!patient) {
+                return null;
+            }
             const result = await SequelizePatient.destroy({
                 where: {
                     pat_uuid: pat_uuid ?? null
-                }
+                },
+                transaction: options?.transaction
             });
             if (!result) {
-                throw new Error("No se ha eliminado el paciente");
+                return null;
             }
             return patient;
         } catch (error: any) {
+            if (error.name === 'SequelizeForeignKeyConstraintError') {
+                throw new Error(DbErrorHandler.handle(error));
+            }
             console.error("Error en deletePatient:", error.message);
             throw error;
         }
     }
 
-    async findPatientByName(pat_name: string, excludeUuid?: string | null): Promise<PatientEntity | null> {
+    async findPatientByName(pat_name: string, excludeUuid?: string | null, options?: { transaction?: any }): Promise<PatientEntity | null> {
         try {
             const whereClause: any = {
                 [Op.or]: [
-                    { pat_firstname: pat_name },
-                    { pat_lastname: pat_name }
+                    { pat_firstname: { [Op.iLike]: `%${pat_name}%` } },
+                    { pat_lastname: { [Op.iLike]: `%${pat_name}%` } }
                 ]
             };
 
@@ -140,7 +140,8 @@ export class SequelizePatientRepository implements PatientRepository {
             }
 
             const patient = await SequelizePatient.findOne({
-                where: whereClause
+                where: whereClause,
+                transaction: options?.transaction
             });
 
             return patient ? (patient.get({ plain: true }) as PatientEntity) : null;
