@@ -1,4 +1,5 @@
 import { Express } from "express";
+import { authMiddleware } from "../../middlewares/auth.middleware";
 import { SequelizeRepository } from "../../repository/user-rol-company/sequelize-user-rol-company.repository";
 import { UserRolCompanyUseCase } from "../../../application/user-rol-company/user-rol-company-use-case";
 import { UserRolCompanyController } from "../../controller/user-rol-company/user-rol-company.controller";
@@ -64,7 +65,7 @@ function configureUserRolCompanyRoutes(app: Express, socketAdapter: SocketAdapte
      *                   items:
      *                     $ref: '#/components/schemas/UserRolCompanyEntity'
      */
-    app.get(`/${process.env.BASE_URL_API}/user-roles-company/:cmp_uuid/:filter?/:page?/:perPage?`, userRolCompanyCtrl.getAllCtrl);
+    app.get(`/${process.env.BASE_URL_API}/user-roles-company/:cmp_uuid/:filter?/:page?/:perPage?`, authMiddleware, userRolCompanyCtrl.getAllCtrl);
 
     /**
      * @swagger
@@ -96,7 +97,7 @@ function configureUserRolCompanyRoutes(app: Express, socketAdapter: SocketAdapte
      *       200:
      *         description: Asignación encontrada.
      */
-    app.get(`/${process.env.BASE_URL_API}/user-rol-company/:cmp_uuid/:usr_uuid/:rol_uuid`, userRolCompanyCtrl.getCtrl);
+    app.get(`/${process.env.BASE_URL_API}/user-rol-company/:cmp_uuid/:usr_uuid/:rol_uuid`, authMiddleware, userRolCompanyCtrl.getCtrl);
 
     /**
      * @swagger
@@ -112,10 +113,10 @@ function configureUserRolCompanyRoutes(app: Express, socketAdapter: SocketAdapte
      *           schema:
      *             $ref: '#/components/schemas/CreateUserRolCompanyDto'
      *     responses:
-     *       200:
+     *       201:
      *         description: Rol asignado al usuario en la empresa.
      */
-    app.post(`/${process.env.BASE_URL_API}/user-rol-company`, userRolCompanyCtrl.insertCtrl);
+    app.post(`/${process.env.BASE_URL_API}/user-rol-company`, authMiddleware, userRolCompanyCtrl.insertCtrl);
 
     /**
      * @swagger
@@ -147,7 +148,7 @@ function configureUserRolCompanyRoutes(app: Express, socketAdapter: SocketAdapte
      *       200:
      *         description: Asignación actualizada.
      */
-    app.put(`/${process.env.BASE_URL_API}/user-rol-company/:cmp_uuid/:usr_uuid/:rol_uuid`, userRolCompanyCtrl.updateCtrl);
+    app.put(`/${process.env.BASE_URL_API}/user-rol-company/:cmp_uuid/:usr_uuid/:rol_uuid`, authMiddleware, userRolCompanyCtrl.updateCtrl);
 
     /**
      * @swagger
@@ -179,7 +180,7 @@ function configureUserRolCompanyRoutes(app: Express, socketAdapter: SocketAdapte
      *       200:
      *         description: Rol removido con éxito.
      */
-    app.delete(`/${process.env.BASE_URL_API}/user-rol-company/:cmp_uuid/:usr_uuid/:rol_uuid`, userRolCompanyCtrl.deleteCtrl);
+    app.delete(`/${process.env.BASE_URL_API}/user-rol-company/:cmp_uuid/:usr_uuid/:rol_uuid`, authMiddleware, userRolCompanyCtrl.deleteCtrl);
 
     /**
      * @swagger
@@ -199,7 +200,7 @@ function configureUserRolCompanyRoutes(app: Express, socketAdapter: SocketAdapte
      *       200:
      *         description: Empresas y roles retornados.
      */
-    app.get(`/${process.env.BASE_URL_API}/user-roles-company-by-user/:usr_uuid`, userRolCompanyCtrl.getUserRolesCompanyByUserCtrl);
+    app.get(`/${process.env.BASE_URL_API}/user-roles-company-by-user/:usr_uuid`, authMiddleware, userRolCompanyCtrl.getUserRolesCompanyByUserCtrl);
 
     /**
      * @swagger
@@ -225,7 +226,7 @@ function configureUserRolCompanyRoutes(app: Express, socketAdapter: SocketAdapte
      *       200:
      *         description: Roles del usuario en la empresa retornados.
      */
-    app.get(`/${process.env.BASE_URL_API}/user-roles-company-by-company-user/:cmp_uuid/:usr_uuid`, userRolCompanyCtrl.getUserRolesCompanyByCompanyUserCtrl);
+    app.get(`/${process.env.BASE_URL_API}/user-roles-company-by-company-user/:cmp_uuid/:usr_uuid`, authMiddleware, userRolCompanyCtrl.getUserRolesCompanyByCompanyUserCtrl);
 }
 
 export default configureUserRolCompanyRoutes;
