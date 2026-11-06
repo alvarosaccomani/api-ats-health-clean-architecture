@@ -1,5 +1,6 @@
 import { CompanyRepository } from "../../domain/company/company.repository";
 import { CompanyValue } from "../../domain/company/company.value";
+import { CompanyEntity, CompanyUpdateData } from "../../domain/company/company.entity";
 import { TimezoneConverter } from "../../infrastructure/utils/TimezoneConverter";
 
 export class CompanyUseCase {
@@ -14,13 +15,13 @@ export class CompanyUseCase {
         this.findCompanyByName = this.findCompanyByName.bind(this);
     }
 
-    public async getCompanies() {
+    public async getCompanies(options?: { transaction?: any }) {
         try {
-            const company = await this.companyRepository.getCompanies();
-            if(!company) {
-                throw new Error('No hay empresas.');
+            const companies = await this.companyRepository.getCompanies(options);
+            if (!companies) {
+                return [];
             }
-            return company.map(company => ({
+            return companies.map(company => ({
                 cmp_uuid: company.cmp_uuid,
                 cmp_name: company.cmp_name,
                 cmp_address: company.cmp_address,
@@ -42,14 +43,14 @@ export class CompanyUseCase {
             }));
         } catch (error: any) {
             console.error('Error en getCompanies (use case):', error.message);
-            throw error; // Propagar el error hacia el controlador
+            throw error;
         }
     }
 
-    public async getDetailCompany(cmp_uuid: string) {
+    public async getDetailCompany(cmp_uuid: string, options?: { transaction?: any }) {
         try {
-            const company = await this.companyRepository.findCompanyById(cmp_uuid);
-            if(!company) {
+            const company = await this.companyRepository.findCompanyById(cmp_uuid, options);
+            if (!company) {
                 throw new Error(`No hay empresa con el Id: ${cmp_uuid}`);
             }
             return {
@@ -74,15 +75,35 @@ export class CompanyUseCase {
             };
         } catch (error: any) {
             console.error('Error en getDetailCompany (use case):', error.message);
-            throw error; // Propagar el error hacia el controlador
+            throw error;
         }
     }
     
-    public async createCompany({ cmp_uuid, cmp_name, cmp_address, cmp_lat, cmp_lng, cmp_phone, cmp_email, cmp_logo, cmp_banner, cmp_description, cmp_whatsapp, cmp_instagram, cmp_facebook, cmp_primarycolor, cmp_isfeatured, cmp_status } : { cmp_uuid?: string, cmp_name: string, cmp_address?: string, cmp_lat?: number, cmp_lng?: number, cmp_phone?: string, cmp_email?: string, cmp_logo?: string, cmp_banner?: string, cmp_description?: string, cmp_whatsapp?: string, cmp_instagram?: string, cmp_facebook?: string, cmp_primarycolor?: string, cmp_isfeatured?: boolean, cmp_status?: string }) {
+    public async createCompany(
+        data: {
+            cmp_uuid?: string;
+            cmp_name: string;
+            cmp_address?: string | null;
+            cmp_lat?: number | null;
+            cmp_lng?: number | null;
+            cmp_phone?: string | null;
+            cmp_email?: string | null;
+            cmp_logo?: string | null;
+            cmp_banner?: string | null;
+            cmp_description?: string | null;
+            cmp_whatsapp?: string | null;
+            cmp_instagram?: string | null;
+            cmp_facebook?: string | null;
+            cmp_primarycolor?: string | null;
+            cmp_isfeatured?: boolean | null;
+            cmp_status?: string | null;
+        },
+        options?: { transaction?: any }
+    ) {
         try {
-            const companyValue = new CompanyValue({ cmp_uuid, cmp_name, cmp_address, cmp_lat, cmp_lng, cmp_phone, cmp_email, cmp_logo, cmp_banner, cmp_description, cmp_whatsapp, cmp_instagram, cmp_facebook, cmp_primarycolor, cmp_isfeatured, cmp_status });
-            const companyCreated = await this.companyRepository.createCompany(companyValue);
-            if(!companyCreated) {
+            const companyValue = new CompanyValue(data);
+            const companyCreated = await this.companyRepository.createCompany(companyValue, options);
+            if (!companyCreated) {
                 throw new Error(`No se pudo insertar la empresa.`);
             }
             return {
@@ -107,14 +128,14 @@ export class CompanyUseCase {
             };
         } catch (error: any) {
             console.error('Error en createCompany (use case):', error.message);
-            throw error; // Propagar el error hacia el controlador
+            throw error;
         }
     }
 
-    public async updateCompany(cmp_uuid: string, { cmp_name, cmp_address, cmp_lat, cmp_lng, cmp_phone, cmp_email, cmp_logo, cmp_banner, cmp_description, cmp_whatsapp, cmp_instagram, cmp_facebook, cmp_primarycolor, cmp_isfeatured, cmp_status } : { cmp_name: string, cmp_address: string, cmp_lat: number, cmp_lng: number, cmp_phone: string, cmp_email: string, cmp_logo: string, cmp_banner: string, cmp_description: string, cmp_whatsapp: string, cmp_instagram: string, cmp_facebook: string, cmp_primarycolor: string, cmp_isfeatured: boolean, cmp_status: string }) {
+    public async updateCompany(cmp_uuid: string, data: CompanyUpdateData, options?: { transaction?: any }) {
         try {
-            const companyUpdated = await this.companyRepository.updateCompany(cmp_uuid, { cmp_name, cmp_address, cmp_lat, cmp_lng, cmp_phone, cmp_email, cmp_logo, cmp_banner, cmp_description, cmp_whatsapp, cmp_instagram, cmp_facebook, cmp_primarycolor, cmp_isfeatured, cmp_status });
-            if(!companyUpdated) {
+            const companyUpdated = await this.companyRepository.updateCompany(cmp_uuid, data, options);
+            if (!companyUpdated) {
                 throw new Error(`No se pudo actualizar la empresa.`);
             }
             return {
@@ -139,14 +160,14 @@ export class CompanyUseCase {
             };
         } catch (error: any) {
             console.error('Error en updateCompany (use case):', error.message);
-            throw error; // Propagar el error hacia el controlador
+            throw error;
         }
     }
 
-    public async deleteCompany(cmp_uuid: string) {
+    public async deleteCompany(cmp_uuid: string, options?: { transaction?: any }) {
         try {
-            const companyDeleted = await this.companyRepository.deleteCompany(cmp_uuid);
-            if(!companyDeleted) {
+            const companyDeleted = await this.companyRepository.deleteCompany(cmp_uuid, options);
+            if (!companyDeleted) {
                 throw new Error(`No se pudo eliminar la empresa.`);
             }
             return {
@@ -171,21 +192,17 @@ export class CompanyUseCase {
             };
         } catch (error: any) {
             console.error('Error en deleteCompany (use case):', error.message);
-            throw error; // Propagar el error hacia el controlador
+            throw error;
         }
     }
 
-    public async findCompanyByName(cmp_name: string, excludeUuid?: string) {
+    public async findCompanyByName(cmp_name: string, excludeUuid?: string, options?: { transaction?: any }) {
         try {
-            const company = await this.companyRepository.findCompanyByName(cmp_name, excludeUuid)
-            if(company) {
-                throw new Error(`Ya existe una empresa con el nombre ${cmp_name}.`);
-            }
-            return company
+            const company = await this.companyRepository.findCompanyByName(cmp_name, excludeUuid, options);
+            return company;
         } catch (error: any) {
             console.error('Error en findCompanyByName (use case):', error.message);
-            throw error; // Propagar el error hacia el controlador
+            throw error;
         }
     }
-
 }
