@@ -13,27 +13,27 @@ export class PatientController {
 
     public async getAllCtrl(req: Request, res: Response) {
         try {
-            const page = req.params.page ? parseInt(req.params.page) : null;
-            const perPage = req.params.perPage ? parseInt(req.params.perPage) : null;
+            const page = req.query.page ? parseInt(req.query.page as string) : (req.params.page ? parseInt(req.params.page) : null);
+            const perPage = req.query.perPage ? parseInt(req.query.perPage as string) : (req.params.perPage ? parseInt(req.params.perPage) : null);
             const cmp_uuid = (req.query.cmp_uuid as string) || (req.params as any).cmp_uuid || undefined;
 
+            const patients = await this.patientUseCase.getPatients(cmp_uuid);
+
             if (page && perPage) {
-                const patients = await this.patientUseCase.getPatients(cmp_uuid);
-                return res.status(200).send({
+                return res.status(200).json({
                     success: true,
                     message: "Pacientes retornados.",
                     ...paginator(patients, page, perPage)
                 });
             } else {
-                const patients = await this.patientUseCase.getPatients(cmp_uuid);
-                return res.status(200).send({
+                return res.status(200).json({
                     success: true,
                     message: "Pacientes retornados.",
                     data: patients
                 });
             }
         } catch (error: any) {
-            console.error("Error en getAllCtrl (controller):", error.message);
+            console.error("Error en getAllCtrl (patient controller):", error.message);
             return res.status(400).json({
                 success: false,
                 message: "No se pudo recuperar los pacientes.",
@@ -54,13 +54,13 @@ export class PatientController {
             }
 
             const patient = await this.patientUseCase.getDetailPatient(pat_uuid);
-            return res.status(200).send({
+            return res.status(200).json({
                 success: true,
                 message: "Paciente retornado.",
                 data: patient
             });
         } catch (error: any) {
-            console.error("Error en getCtrl (controller):", error.message);
+            console.error("Error en getCtrl (patient controller):", error.message);
             return res.status(400).json({
                 success: false,
                 message: "No se pudo recuperar el paciente.",
@@ -72,13 +72,13 @@ export class PatientController {
     public async insertCtrl(req: Request, res: Response) {
         try {
             const patient = await this.patientUseCase.createPatient(req.body);
-            return res.status(201).send({
+            return res.status(201).json({
                 success: true,
                 message: "Paciente creado con éxito.",
                 data: patient
             });
         } catch (error: any) {
-            console.error("Error en insertCtrl (controller):", error.message);
+            console.error("Error en insertCtrl (patient controller):", error.message);
             return res.status(400).json({
                 success: false,
                 message: "No se pudo registrar el paciente.",
@@ -90,14 +90,21 @@ export class PatientController {
     public async updateCtrl(req: Request, res: Response) {
         try {
             const pat_uuid = req.params.pat_uuid;
+            if (!pat_uuid) {
+                return res.status(400).json({
+                    success: false,
+                    message: "No se pudo actualizar el paciente.",
+                    error: "Debe proporcionar pat_uuid."
+                });
+            }
             const patient = await this.patientUseCase.updatePatient(pat_uuid, req.body);
-            return res.status(200).send({
+            return res.status(200).json({
                 success: true,
                 message: "Paciente actualizado con éxito.",
                 data: patient
             });
         } catch (error: any) {
-            console.error("Error en updateCtrl (controller):", error.message);
+            console.error("Error en updateCtrl (patient controller):", error.message);
             return res.status(400).json({
                 success: false,
                 message: "No se pudo actualizar el paciente.",
@@ -109,14 +116,21 @@ export class PatientController {
     public async deleteCtrl(req: Request, res: Response) {
         try {
             const pat_uuid = req.params.pat_uuid;
+            if (!pat_uuid) {
+                return res.status(400).json({
+                    success: false,
+                    message: "No se pudo eliminar el paciente.",
+                    error: "Debe proporcionar pat_uuid."
+                });
+            }
             const patient = await this.patientUseCase.deletePatient(pat_uuid);
-            return res.status(200).send({
+            return res.status(200).json({
                 success: true,
                 message: "Paciente eliminado con éxito.",
                 data: patient
             });
         } catch (error: any) {
-            console.error("Error en deleteCtrl (controller):", error.message);
+            console.error("Error en deleteCtrl (patient controller):", error.message);
             return res.status(400).json({
                 success: false,
                 message: "No se pudo eliminar el paciente.",
