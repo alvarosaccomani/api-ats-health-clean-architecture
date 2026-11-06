@@ -1,4 +1,5 @@
 import { Express } from "express";
+import { authMiddleware } from "../../middlewares/auth.middleware";
 import { SequelizeRepository } from "../../repository/rol/sequelize-rol.repository";
 import { RolUseCase } from "../../../application/rol/rol-use-case";
 import { RolController } from "../../controller/rol/rol.controller";
@@ -61,7 +62,7 @@ function configureRolRoutes(app: Express, socketAdapter: SocketAdapter) {
      *       400:
      *         description: Error al obtener roles.
      */
-    app.get(`/${process.env.BASE_URL_API}/roles/:filter?/:page?/:perPage?`, rolCtrl.getAllCtrl);
+    app.get(`/${process.env.BASE_URL_API}/roles/:filter?/:page?/:perPage?`, authMiddleware, rolCtrl.getAllCtrl);
 
     /**
      * @swagger
@@ -92,7 +93,7 @@ function configureRolRoutes(app: Express, socketAdapter: SocketAdapter) {
      *       400:
      *         description: Rol no encontrado.
      */
-    app.get(`/${process.env.BASE_URL_API}/rol/:rol_uuid`, rolCtrl.getCtrl);
+    app.get(`/${process.env.BASE_URL_API}/rol/:rol_uuid`, authMiddleware, rolCtrl.getCtrl);
 
     /**
      * @swagger
@@ -108,7 +109,7 @@ function configureRolRoutes(app: Express, socketAdapter: SocketAdapter) {
      *           schema:
      *             $ref: '#/components/schemas/CreateRolDto'
      *     responses:
-     *       200:
+     *       201:
      *         description: Rol insertado con éxito.
      *         content:
      *           application/json:
@@ -122,7 +123,7 @@ function configureRolRoutes(app: Express, socketAdapter: SocketAdapter) {
      *       400:
      *         description: Error al crear rol.
      */
-    app.post(`/${process.env.BASE_URL_API}/rol`, rolCtrl.insertCtrl);
+    app.post(`/${process.env.BASE_URL_API}/rol`, authMiddleware, rolCtrl.insertCtrl);
 
     /**
      * @swagger
@@ -150,7 +151,7 @@ function configureRolRoutes(app: Express, socketAdapter: SocketAdapter) {
      *       400:
      *         description: Error al actualizar rol.
      */
-    app.put(`/${process.env.BASE_URL_API}/rol/:rol_uuid`, rolCtrl.updateCtrl);
+    app.put(`/${process.env.BASE_URL_API}/rol/:rol_uuid`, authMiddleware, rolCtrl.updateCtrl);
 
     /**
      * @swagger
@@ -172,7 +173,7 @@ function configureRolRoutes(app: Express, socketAdapter: SocketAdapter) {
      *       400:
      *         description: Error al eliminar rol.
      */
-    app.delete(`/${process.env.BASE_URL_API}/rol/:rol_uuid`, rolCtrl.deleteCtrl);
+    app.delete(`/${process.env.BASE_URL_API}/rol/:rol_uuid`, authMiddleware, rolCtrl.deleteCtrl);
 }
 
 export default configureRolRoutes;
