@@ -11,13 +11,15 @@ export class UserRolCompanyUseCase {
         this.createUserRolCompany = this.createUserRolCompany.bind(this);
         this.updateUserRolCompany = this.updateUserRolCompany.bind(this);
         this.deleteUserRolCompany = this.deleteUserRolCompany.bind(this);
+        this.existUserRolCompany = this.existUserRolCompany.bind(this);
         this.getUserRolesCompanyByUser = this.getUserRolesCompanyByUser.bind(this);
+        this.getUserRolesCompanyByCompanyUser = this.getUserRolesCompanyByCompanyUser.bind(this);
     }
 
-    public async getUserRolesCompany(cmp_uuid: string) {
+    public async getUserRolesCompany(cmp_uuid: string, options?: { transaction?: any }) {
         try {
-            const userRolesCompany = await this.userRolCompanyRepository.getUserRolesCompany(cmp_uuid);
-            if(!userRolesCompany) {
+            const userRolesCompany = await this.userRolCompanyRepository.getUserRolesCompany(cmp_uuid, options);
+            if (!userRolesCompany) {
                 throw new Error('No hay users roles companies.');
             }
             return userRolesCompany.map((userRolCompany) => ({
@@ -26,19 +28,19 @@ export class UserRolCompanyUseCase {
                 usr: userRolCompany.usr,
                 rol_uuid: userRolCompany.rol_uuid,
                 rol: userRolCompany.rol,
-                usrrolcmp_createdat: TimezoneConverter.toIsoStringInTimezone(userRolCompany.usrrolcmp_createdat, 'America/Argentina/Buenos_Aires'),
-                usrrolcmp_updatedat: TimezoneConverter.toIsoStringInTimezone(userRolCompany.usrrolcmp_updatedat, 'America/Argentina/Buenos_Aires')
+                usrrolcmp_createdat: TimezoneConverter.toIsoStringInTimezone(userRolCompany.usrrolcmp_createdat, 'America/Buenos_Aires'),
+                usrrolcmp_updatedat: TimezoneConverter.toIsoStringInTimezone(userRolCompany.usrrolcmp_updatedat, 'America/Buenos_Aires')
             }));
         } catch (error: any) {
             console.error('Error en getUserRoleCompanies (use case):', error.message);
-            throw error; // Propagar el error hacia el controlador
+            throw error;
         }
     }
 
-    public async getDetailUserRolCompany(cmp_uuid: string, usr_uuid: string, rol_uuid: string) {
+    public async getDetailUserRolCompany(cmp_uuid: string, usr_uuid: string, rol_uuid: string, options?: { transaction?: any }) {
         try {
-            const userRolCompany = await this.userRolCompanyRepository.findUserRolCompanyById(cmp_uuid, usr_uuid, rol_uuid);
-            if(!userRolCompany) {
+            const userRolCompany = await this.userRolCompanyRepository.findUserRolCompanyById(cmp_uuid, usr_uuid, rol_uuid, options);
+            if (!userRolCompany) {
                 throw new Error(`No hay user rol company con el Id: ${cmp_uuid}, ${usr_uuid}, ${rol_uuid}`);
             }
             return {
@@ -46,20 +48,24 @@ export class UserRolCompanyUseCase {
                 usr_uuid: userRolCompany.usr_uuid,
                 usr: userRolCompany.usr,
                 rol_uuid: userRolCompany.rol_uuid,
-                usrrolcmp_createdat: TimezoneConverter.toIsoStringInTimezone(userRolCompany.usrrolcmp_createdat, 'America/Argentina/Buenos_Aires'),
-                usrrolcmp_updatedat: TimezoneConverter.toIsoStringInTimezone(userRolCompany.usrrolcmp_updatedat, 'America/Argentina/Buenos_Aires')
+                usrrolcmp_createdat: TimezoneConverter.toIsoStringInTimezone(userRolCompany.usrrolcmp_createdat, 'America/Buenos_Aires'),
+                usrrolcmp_updatedat: TimezoneConverter.toIsoStringInTimezone(userRolCompany.usrrolcmp_updatedat, 'America/Buenos_Aires')
             };
         } catch (error: any) {
             console.error('Error en getDetailUserRolCompany (use case):', error.message);
-            throw error; // Propagar el error hacia el controlador
+            throw error;
         }
     }
     
-    public async createUserRolCompany({ cmp_uuid, usr_uuid, rol_uuid, usrrolcmp_createdat, usrrolcmp_updatedat } : { cmp_uuid: string, usr_uuid: string, rol_uuid: string, usrrolcmp_createdat: Date, usrrolcmp_updatedat: Date }) {
+    public async createUserRolCompany(
+        { cmp_uuid, usr_uuid, rol_uuid, usrrolcmp_createdat, usrrolcmp_updatedat }: 
+        { cmp_uuid: string; usr_uuid: string; rol_uuid: string; usrrolcmp_createdat?: Date; usrrolcmp_updatedat?: Date },
+        options?: { transaction?: any }
+    ) {
         try {
             const userRolCompanyValue = new UserRolCompanyValue({ cmp_uuid, usr_uuid, rol_uuid, usrrolcmp_createdat, usrrolcmp_updatedat });
-            const userRolCompanyCreated = await this.userRolCompanyRepository.createUserRolCompany(userRolCompanyValue);
-            if(!userRolCompanyCreated) {
+            const userRolCompanyCreated = await this.userRolCompanyRepository.createUserRolCompany(userRolCompanyValue, options);
+            if (!userRolCompanyCreated) {
                 throw new Error(`No se pudo insertar el user rol company.`);
             }
             return {
@@ -67,19 +73,25 @@ export class UserRolCompanyUseCase {
                 usr_uuid: userRolCompanyCreated.usr_uuid,
                 usr: userRolCompanyCreated.usr,
                 rol_uuid: userRolCompanyCreated.rol_uuid,
-                usrrolcmp_createdat: TimezoneConverter.toIsoStringInTimezone(userRolCompanyCreated.usrrolcmp_createdat, 'America/Argentina/Buenos_Aires'),
-                usrrolcmp_updatedat: TimezoneConverter.toIsoStringInTimezone(userRolCompanyCreated.usrrolcmp_updatedat, 'America/Argentina/Buenos_Aires')
+                usrrolcmp_createdat: TimezoneConverter.toIsoStringInTimezone(userRolCompanyCreated.usrrolcmp_createdat, 'America/Buenos_Aires'),
+                usrrolcmp_updatedat: TimezoneConverter.toIsoStringInTimezone(userRolCompanyCreated.usrrolcmp_updatedat, 'America/Buenos_Aires')
             };
         } catch (error: any) {
             console.error('Error en createUserRolCompany (use case):', error.message);
-            throw error; // Propagar el error hacia el controlador
+            throw error;
         }
     }
 
-    public async updateUserRolCompany(cmp_uuid: string, usr_uuid: string, rol_uuid: string,{ usrrolcmp_createdat, usrrolcmp_updatedat } : { cmp_uuid: string, usr_uuid: string, rol_uuid: string, usrrolcmp_createdat: Date, usrrolcmp_updatedat: Date }) {
+    public async updateUserRolCompany(
+        cmp_uuid: string, 
+        usr_uuid: string, 
+        rol_uuid: string,
+        { usrrolcmp_createdat, usrrolcmp_updatedat }: { usrrolcmp_createdat?: Date; usrrolcmp_updatedat?: Date },
+        options?: { transaction?: any }
+    ) {
         try {
-            const userRolCompanyUpdated = await this.userRolCompanyRepository.updateUserRolCompany(cmp_uuid, usr_uuid, rol_uuid, { cmp_uuid, usr_uuid, rol_uuid, usrrolcmp_createdat, usrrolcmp_updatedat });
-            if(!userRolCompanyUpdated) {
+            const userRolCompanyUpdated = await this.userRolCompanyRepository.updateUserRolCompany(cmp_uuid, usr_uuid, rol_uuid, { cmp_uuid, usr_uuid, rol_uuid, usrrolcmp_createdat, usrrolcmp_updatedat }, options);
+            if (!userRolCompanyUpdated) {
                 throw new Error(`No se pudo actualizar el user rol company.`);
             }
             return {
@@ -87,19 +99,19 @@ export class UserRolCompanyUseCase {
                 usr_uuid: userRolCompanyUpdated.usr_uuid,
                 usr: userRolCompanyUpdated.usr,
                 rol_uuid: userRolCompanyUpdated.rol_uuid,
-                usrrolcmp_createdat: TimezoneConverter.toIsoStringInTimezone(userRolCompanyUpdated.usrrolcmp_createdat, 'America/Argentina/Buenos_Aires'),
-                usrrolcmp_updatedat: TimezoneConverter.toIsoStringInTimezone(userRolCompanyUpdated.usrrolcmp_updatedat, 'America/Argentina/Buenos_Aires')
+                usrrolcmp_createdat: TimezoneConverter.toIsoStringInTimezone(userRolCompanyUpdated.usrrolcmp_createdat, 'America/Buenos_Aires'),
+                usrrolcmp_updatedat: TimezoneConverter.toIsoStringInTimezone(userRolCompanyUpdated.usrrolcmp_updatedat, 'America/Buenos_Aires')
             };
         } catch (error: any) {
             console.error('Error en updateUserRolCompany (use case):', error.message);
-            throw error; // Propagar el error hacia el controlador
+            throw error;
         }
     }
 
-    public async deleteUserRolCompany(cmp_uuid: string, usr_uuid: string, rol_uuid: string) {
+    public async deleteUserRolCompany(cmp_uuid: string, usr_uuid: string, rol_uuid: string, options?: { transaction?: any }) {
         try {
-            const userRolCompanyDeleted = await this.userRolCompanyRepository.deleteUserRolCompany(cmp_uuid, usr_uuid, rol_uuid);
-            if(!userRolCompanyDeleted) {
+            const userRolCompanyDeleted = await this.userRolCompanyRepository.deleteUserRolCompany(cmp_uuid, usr_uuid, rol_uuid, options);
+            if (!userRolCompanyDeleted) {
                 throw new Error(`No se pudo eliminar el user rol company.`);
             }
             return {
@@ -107,43 +119,42 @@ export class UserRolCompanyUseCase {
                 usr_uuid: userRolCompanyDeleted.usr_uuid,
                 usr: userRolCompanyDeleted.usr,
                 rol_uuid: userRolCompanyDeleted.rol_uuid,
-                usrrolcmp_createdat: TimezoneConverter.toIsoStringInTimezone(userRolCompanyDeleted.usrrolcmp_createdat, 'America/Argentina/Buenos_Aires'),
-                usrrolcmp_updatedat: TimezoneConverter.toIsoStringInTimezone(userRolCompanyDeleted.usrrolcmp_updatedat, 'America/Argentina/Buenos_Aires')
+                usrrolcmp_createdat: TimezoneConverter.toIsoStringInTimezone(userRolCompanyDeleted.usrrolcmp_createdat, 'America/Buenos_Aires'),
+                usrrolcmp_updatedat: TimezoneConverter.toIsoStringInTimezone(userRolCompanyDeleted.usrrolcmp_updatedat, 'America/Buenos_Aires')
             };
         } catch (error: any) {
             console.error('Error en deleteUserRolCompany (use case):', error.message);
-            throw error; // Propagar el error hacia el controlador
+            throw error;
         }
     }
 
-    public async existUserRolCompany(cmp_uuid: string, usr_uuid: string, rol_uuid: string) {
+    public async existUserRolCompany(cmp_uuid: string, usr_uuid: string, rol_uuid: string, options?: { transaction?: any }) {
         try {
-            const userRolCompany = this.userRolCompanyRepository.existUserRolCompany(cmp_uuid, usr_uuid, rol_uuid);
+            const userRolCompany = await this.userRolCompanyRepository.existUserRolCompany(cmp_uuid, usr_uuid, rol_uuid, options);
             return userRolCompany;
         } catch (error: any) {
             console.error('Error en existUserRolCompany (use case):', error.message);
-            throw error; // Propagar el error hacia el controlador
+            throw error;
         }
     }
 
-    public async getUserRolesCompanyByUser(usr_uuid: string) {
+    public async getUserRolesCompanyByUser(usr_uuid: string, options?: { transaction?: any }) {
         try {
-            const userRolesCompany = this.userRolCompanyRepository.getUserRolesCompanyByUser(usr_uuid);
+            const userRolesCompany = await this.userRolCompanyRepository.getUserRolesCompanyByUser(usr_uuid, options);
             return userRolesCompany;
         } catch (error: any) {
             console.error('Error en getUserRolesCompanyByUser (use case):', error.message);
-            throw error; // Propagar el error hacia el controlador
+            throw error;
         }
     }
 
-    public async getUserRolesCompanyByCompanyUser(cmp_uuid: string, usr_uuid: string) {
+    public async getUserRolesCompanyByCompanyUser(cmp_uuid: string, usr_uuid: string, options?: { transaction?: any }) {
         try {
-            const userRolesCompany = this.userRolCompanyRepository.getUserRolesCompanyByCompanyUser(cmp_uuid, usr_uuid);
+            const userRolesCompany = await this.userRolCompanyRepository.getUserRolesCompanyByCompanyUser(cmp_uuid, usr_uuid, options);
             return userRolesCompany;
         } catch (error: any) {
             console.error('Error en getUserRolesCompanyByCompanyUser (use case):', error.message);
-            throw error; // Propagar el error hacia el controlador
+            throw error;
         }
     }
-
 }
