@@ -17,7 +17,7 @@ export class PatientValue implements PatientEntity {
     pat_email: string | null;
     pat_medicalcoverage: string | null;
     pat_affiliatenumber: string | null;
-    pat_emergencycontact: string | null;
+    pat_emergencycontact: any | null;
     pat_active: boolean;
     pat_createdat: Date;
     pat_updatedat: Date;
@@ -56,13 +56,13 @@ export class PatientValue implements PatientEntity {
         pat_email?: string | null;
         pat_medicalcoverage?: string | null;
         pat_affiliatenumber?: string | null;
-        pat_emergencycontact?: string | null;
+        pat_emergencycontact?: any | null;
         pat_active?: boolean;
         pat_createdat?: Date;
         pat_updatedat?: Date;
     }) {
         this.cmp_uuid = cmp_uuid;
-        this.pat_uuid = pat_uuid || uuid();
+        this.pat_uuid = pat_uuid ?? uuid();
         this.usr_uuid = usr_uuid ?? null;
         this.pat_documentnumber = pat_documentnumber;
         this.pat_firstname = pat_firstname;
@@ -76,7 +76,7 @@ export class PatientValue implements PatientEntity {
         this.pat_medicalcoverage = pat_medicalcoverage ?? null;
         this.pat_affiliatenumber = pat_affiliatenumber ?? null;
         this.pat_emergencycontact = pat_emergencycontact ?? null;
-        this.pat_active = pat_active !== undefined ? pat_active : true;
+        this.pat_active = pat_active ?? true;
         this.pat_createdat = pat_createdat ?? moment().toDate();
         this.pat_updatedat = pat_updatedat ?? moment().toDate();
     }
