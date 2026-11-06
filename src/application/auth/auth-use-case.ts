@@ -10,9 +10,9 @@ export class AuthUseCase {
         this.updatePassword = this.updatePassword.bind(this);
     }
 
-    public async loginUser(usr_nick: string, usr_password: string, gettoken: boolean) {
+    public async loginUser(usr_nick: string, usr_password: string, gettoken: boolean, options?: { transaction?: any }) {
         try {
-            const user = await this.authRepository.loginUser(usr_nick, usr_password, gettoken);
+            const user = await this.authRepository.loginUser(usr_nick, usr_password, gettoken, options);
             if (!user) {
                 throw new Error('Credenciales incorrectas.');
             }
@@ -23,8 +23,8 @@ export class AuthUseCase {
         }
     }
 
-    public async confirmAccount(usr_confirmationtoken: string = '') {
-        const userConfirmation = await this.authRepository.confirmAccount(usr_confirmationtoken);
+    public async confirmAccount(usr_confirmationtoken: string = '', options?: { transaction?: any }) {
+        const userConfirmation = await this.authRepository.confirmAccount(usr_confirmationtoken, options);
         return userConfirmation;
     }
 
@@ -37,9 +37,9 @@ export class AuthUseCase {
         }
     }
 
-    public async forgotPasswordForUser(user: UserEntity) {        
+    public async forgotPasswordForUser(user: UserEntity, options?: { transaction?: any }) {        
         try {
-            const userForgotPassword = await this.authRepository.forgotPassword(user);
+            const userForgotPassword = await this.authRepository.forgotPassword(user, options);
             return userForgotPassword;
         } catch (error: any) {
             console.error('Error en forgotPasswordForUser (use case):', error.message);
@@ -47,9 +47,9 @@ export class AuthUseCase {
         }
     }
 
-    public async getUserByResetToken(token: string, expirationDate: Date) {
+    public async getUserByResetToken(token: string, expirationDate: Date, options?: { transaction?: any }) {
         try {
-            const user = await this.authRepository.findUserByResetToken(token, expirationDate);
+            const user = await this.authRepository.findUserByResetToken(token, expirationDate, options);
             if (!user) {
                 throw new Error('El token es inválido o ha expirado.');
             }
@@ -60,9 +60,9 @@ export class AuthUseCase {
         }
     }
 
-    public async updatePassword(usr_uuid: string, newPassword: string) {
+    public async updatePassword(usr_uuid: string, newPassword: string, options?: { transaction?: any }) {
         try {
-            await this.authRepository.updatePassword(usr_uuid, newPassword);
+            await this.authRepository.updatePassword(usr_uuid, newPassword, options);
         } catch (error: any) {
             console.error('Error en updatePassword (use case):', error.message);
             throw error;
