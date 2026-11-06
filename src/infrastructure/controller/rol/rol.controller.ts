@@ -17,14 +17,14 @@ export class RolController {
             const page = (req.params.page ? parseInt(req.params.page) : null);
             const perPage = (req.params.perPage ? parseInt(req.params.perPage) : null);
             if (page && perPage) {
-                const roles = await this.rolUseCase.getRoles()
+                const roles = await this.rolUseCase.getRoles();
                 return res.status(200).send({
                     success: true,
                     message: 'Roles retornados.',
                     ...paginator(roles, page, perPage)
                 });
             } else {
-                const roles = await this.rolUseCase.getRoles()
+                const roles = await this.rolUseCase.getRoles();
                 return res.status(200).send({
                     success: true,
                     message: 'Roles retornados.',
@@ -36,7 +36,7 @@ export class RolController {
             return res.status(400).json({
                 success: false,
                 message: 'No se pudo recuperar los roles.',
-                error: error.message, // Mensaje claro del error
+                error: error.message,
             });
         }
     }
@@ -44,14 +44,14 @@ export class RolController {
     public async getCtrl(req: Request, res: Response) {
         try {
             const rol_uuid = req.params.rol_uuid;
-            if(!rol_uuid || rol_uuid.toLowerCase() === 'null' || rol_uuid.toLowerCase() === 'undefined') {
+            if (!rol_uuid || rol_uuid.toLowerCase() === 'null' || rol_uuid.toLowerCase() === 'undefined') {
                 return res.status(400).json({
                     success: false,
                     message: 'No se pudo recuperar el rol.',
                     error: 'Debe proporcionar un Id de rol.'
                 });
             }
-            const rol = await this.rolUseCase.getDetailRol(`${rol_uuid}`)
+            const rol = await this.rolUseCase.getDetailRol(`${rol_uuid}`);
             return res.status(200).send({
                 success: true,
                 message: 'Rol retornado.',
@@ -62,7 +62,7 @@ export class RolController {
             return res.status(400).json({
                 success: false,
                 message: 'No se pudo recuperar el rol.',
-                error: error.message, // Mensaje claro del error
+                error: error.message,
             });
         }
     }
@@ -70,23 +70,23 @@ export class RolController {
     public async insertCtrl({ body }: Request, res: Response) {
         try {
             const rol_name = body.rol_name;
-            if(!rol_name) {
+            if (!rol_name) {
                 return res.status(400).json({
                     success: false,
                     message: 'No se pudo insertar el rol.',
                     error: 'Debe proporcionar un Nombre para el rol.'
-                })
-            };
+                });
+            }
             const rolByName = await this.rolUseCase.findRolByName(rol_name);
-            if(rolByName) {
+            if (rolByName) {
                 return res.status(400).json({
                     success: false,
                     message: 'No se pudo insertar el rol.',
                     error: `El nombre ${rol_name} de rol ya existe.`
                 });
             }
-            const rol = await this.rolUseCase.createRol(body)
-            return res.status(200).json({
+            const rol = await this.rolUseCase.createRol(body);
+            return res.status(201).json({
                 success: true,
                 message: 'Rol insertado.',
                 data: rol
@@ -96,7 +96,7 @@ export class RolController {
             return res.status(400).json({
                 success: false,
                 message: 'No se pudo insertar el rol.',
-                error: error.message, // Mensaje claro del error
+                error: error.message,
             });
         }
     }
@@ -105,22 +105,22 @@ export class RolController {
         try {
             const rol_uuid = req.params.rol_uuid;
             const update = req.body;
-            if(!update.rol_name) {
+            if (!update.rol_name) {
                 return res.status(400).json({
                     success: false,
                     message: 'No se pudo actualizar el rol.',
                     error: 'Debe proporcionar un Nombre para el rol.'
-                })
-            };
-            const rolByName = await this.rolUseCase.findRolByName(update.rol_name, update.rol_uuid);
-            if(rolByName) {
+                });
+            }
+            const rolByName = await this.rolUseCase.findRolByName(update.rol_name, rol_uuid);
+            if (rolByName) {
                 return res.status(400).json({
                     success: false,
                     message: 'No se pudo actualizar el rol.',
                     error: `El nombre ${update.rol_name} de rol ya existe.`
                 });
             }
-            const rol = await this.rolUseCase.updateRol(rol_uuid, update)
+            const rol = await this.rolUseCase.updateRol(rol_uuid, update);
             return res.status(200).json({
                 success: true,
                 message: 'Rol actualizado.',
@@ -131,7 +131,7 @@ export class RolController {
             return res.status(400).json({
                 success: false,
                 message: 'No se pudo actualizar el rol.',
-                error: error.message, // Mensaje claro del error
+                error: error.message,
             });
         }
     }
@@ -139,17 +139,17 @@ export class RolController {
     public async deleteCtrl(req: Request, res: Response) {
         try {
             const rol_uuid = req.params.rol_uuid;
-            if(!rol_uuid) {
+            if (!rol_uuid) {
                 return res.status(400).json({
                     success: false,
                     message: 'No se pudo eliminar el rol.',
                     error: 'Debe proporcionar un Id de rol.'
                 });
-            };
-            const rol = await this.rolUseCase.deleteRol(rol_uuid)
+            }
+            const rol = await this.rolUseCase.deleteRol(rol_uuid);
             return res.status(200).json({
                 success: true,
-                message: 'Rol eliminada.',
+                message: 'Rol eliminado.',
                 data: rol
             });
         } catch (error: any) {
@@ -157,7 +157,7 @@ export class RolController {
             return res.status(400).json({
                 success: false,
                 message: 'No se pudo eliminar el rol.',
-                error: error.message, // Mensaje claro del error
+                error: error.message,
             });
         }
     }
