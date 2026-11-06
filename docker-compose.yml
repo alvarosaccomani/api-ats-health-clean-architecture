@@ -1,4 +1,3 @@
-version: '3.8'
 services:
   api-ats-health-clean-architecture:
     container_name: api-ats-health-clean-architecture
