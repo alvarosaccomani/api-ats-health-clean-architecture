@@ -1,4 +1,5 @@
 import { Express } from "express";
+import { authMiddleware } from "../../middlewares/auth.middleware";
 import { SequelizeRepository } from "../../repository/user/sequelize-user.repository";
 import { UserUseCase } from "../../../application/user/user-use-case";
 import { UserController } from "../../../infrastructure/controller/user/user.controller";
@@ -58,7 +59,7 @@ function configureUserRoutes(app: Express, socketAdapter: SocketAdapter) {
      *             schema:
      *               $ref: '#/components/schemas/ErrorResponse'
      */
-    app.get(`/${process.env.BASE_URL_API}/users/:filter?/:page?/:perPage?`, userCtrl.getAllCtrl);
+    app.get(`/${process.env.BASE_URL_API}/users/:filter?/:page?/:perPage?`, authMiddleware, userCtrl.getAllCtrl);
 
     /**
      * @swagger
@@ -107,7 +108,7 @@ function configureUserRoutes(app: Express, socketAdapter: SocketAdapter) {
      *             schema:
      *               $ref: '#/components/schemas/ErrorResponse'
      */
-    app.get(`/${process.env.BASE_URL_API}/user/:usr_uuid`, userCtrl.getCtrl);
+    app.get(`/${process.env.BASE_URL_API}/user/:usr_uuid`, authMiddleware, userCtrl.getCtrl);
 
     /**
      * @swagger
@@ -126,7 +127,7 @@ function configureUserRoutes(app: Express, socketAdapter: SocketAdapter) {
      *           schema:
      *             $ref: '#/components/schemas/UserInputDTO'
      *     responses:
-     *       200:
+     *       201:
      *         description: Usuario insertado exitosamente.
      *         content:
      *           application/json:
@@ -148,7 +149,7 @@ function configureUserRoutes(app: Express, socketAdapter: SocketAdapter) {
      *             schema:
      *               $ref: '#/components/schemas/ErrorResponse'
      */
-    app.post(`/${process.env.BASE_URL_API}/user`, userCtrl.insertCtrl);
+    app.post(`/${process.env.BASE_URL_API}/user`, authMiddleware, userCtrl.insertCtrl);
 
     /**
      * @swagger
@@ -197,7 +198,7 @@ function configureUserRoutes(app: Express, socketAdapter: SocketAdapter) {
      *             schema:
      *               $ref: '#/components/schemas/ErrorResponse'
      */
-    app.put(`/${process.env.BASE_URL_API}/user/:usr_uuid`, userCtrl.updateCtrl);
+    app.put(`/${process.env.BASE_URL_API}/user/:usr_uuid`, authMiddleware, userCtrl.updateCtrl);
 
     /**
      * @swagger
@@ -238,7 +239,7 @@ function configureUserRoutes(app: Express, socketAdapter: SocketAdapter) {
      *             schema:
      *               $ref: '#/components/schemas/ErrorResponse'
      */
-    app.delete(`/${process.env.BASE_URL_API}/user/:usr_uuid`, userCtrl.deleteCtrl);
+    app.delete(`/${process.env.BASE_URL_API}/user/:usr_uuid`, authMiddleware, userCtrl.deleteCtrl);
 }
 
 export default configureUserRoutes;
