@@ -2,7 +2,7 @@ import { DataTypes, Model } from 'sequelize';
 import { sequelize } from '../../db/sequelize';
 import { ResourceModuleEntity } from "../../../domain/resource-module/resource-module.entity";
 
-export class SequelizeResourceModule extends Model<ResourceModuleEntity, Omit<ResourceModuleEntity, 'id'>> {
+export class SequelizeResourceModule extends Model<ResourceModuleEntity, Omit<ResourceModuleEntity, 'id'>> implements ResourceModuleEntity {
   declare remo_uuid: string;
   declare remo_name: string;
   declare remo_description: string;
@@ -12,25 +12,27 @@ export class SequelizeResourceModule extends Model<ResourceModuleEntity, Omit<Re
 
 SequelizeResourceModule.init({
   remo_uuid: {
-    type: DataTypes.STRING, 
-    primaryKey: true/*,
-    autoIncrement: true*/
+    type: DataTypes.STRING(40), 
+    primaryKey: true
   },
   remo_name: {
-    type: DataTypes.STRING,
-    allowNull: true
+    type: DataTypes.STRING(50),
+    allowNull: false,
+    unique: true
   },
   remo_description: {
-    type: DataTypes.STRING,
+    type: DataTypes.STRING(100),
     allowNull: true
   },
   remo_createdat: {
     type: DataTypes.DATE,
-    allowNull: true
+    allowNull: false,
+    defaultValue: DataTypes.NOW
   },
   remo_updatedat: {
     type: DataTypes.DATE,
-    allowNull: true
+    allowNull: false,
+    defaultValue: DataTypes.NOW
   }
 }, {
   sequelize,
