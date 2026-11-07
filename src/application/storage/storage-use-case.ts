@@ -21,22 +21,29 @@ export interface PresignedUploadResponse {
 
 export class StorageUseCase {
     private static readonly ALLOWED_MIME_TYPES: Record<string, string> = {
+        // Imágenes optimizadas y web
         'image/jpeg': 'jpg',
         'image/jpg': 'jpg',
         'image/png': 'png',
         'image/webp': 'webp',
         'image/heic': 'heic',
+        // Documentos clínicos, contratos y comprobantes
         'application/pdf': 'pdf',
+        'application/vnd.openxmlformats-officedocument.wordprocessingml.document': 'docx',
+        'application/msword': 'doc',
+        'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet': 'xlsx',
+        'application/vnd.ms-excel': 'xls',
     };
 
     constructor(
         private readonly storageService: IStorageService,
         private readonly publicBucketName: string,
         private readonly privateBucketName: string,
-        private readonly appPrefix: string = process.env.STORAGE_APP_PREFIX || 'ats-management'
+        private readonly appPrefix: string = process.env.STORAGE_APP_PREFIX || 'ats-health'
     ) {
         this.getPresignedUploadUrl = this.getPresignedUploadUrl.bind(this);
         this.getPresignedDownloadUrl = this.getPresignedDownloadUrl.bind(this);
+        this.deleteFile = this.deleteFile.bind(this);
     }
 
     /**
@@ -48,7 +55,7 @@ export class StorageUseCase {
             filename,
             contentType,
             bucketType = 'private',
-            folder = 'vouchers',
+            folder = 'attachments',
             expiresInSeconds = 300,
         } = request;
 
@@ -64,11 +71,11 @@ export class StorageUseCase {
         const expectedExtension = StorageUseCase.ALLOWED_MIME_TYPES[normalizedMime];
 
         if (!expectedExtension) {
-            throw new Error(`Tipo de archivo no permitido: ${contentType}. Solo se permiten imágenes (JPEG, PNG, WebP) y PDFs.`);
+            throw new Error(`Tipo de archivo no permitido: ${contentType}. Formatos admitidos: WebP, JPEG, PNG, PDF, DOCX, DOC, XLSX, XLS.`);
         }
 
         const targetBucket = bucketType === 'public' ? this.publicBucketName : this.privateBucketName;
-        const cleanAppPrefix = (this.appPrefix || 'ats-management').replace(/^\/+|\/+$/g, '');
+        const cleanAppPrefix = (this.appPrefix || 'ats-health').replace(/^\/+|\/+$/g, '');
         const sanitizedFolder = folder.replace(/^\/+|\/+$/g, '');
         const fileKey = `${cleanAppPrefix}/${sanitizedFolder}/${usr_uuid}/${Date.now()}_${uuid()}.${expectedExtension}`;
 
@@ -109,5 +116,21 @@ export class StorageUseCase {
             downloadUrl,
             expiresIn: expiresInSeconds,
         };
+    }
+
+    /**
+     * Elimina un archivo en R2 dada su clave y tipo de bucket.
+     * Utilizado para ciclos de vida (borrado de entidad o reemplazo de archivos huérfanos).
+     */
+    public async deleteFile(key: string, bucketType: StorageBucketType = 'private'): Promise<void> {
+        if (!key) {
+            return;
+        }
+
+        const targetBucket = bucketType === 'public' ? this.publicBucketName : this.privateBucketName;
+        await this.storageService.deleteFile({
+            bucket: targetBucket,
+            key,
+        });
     }
 }
