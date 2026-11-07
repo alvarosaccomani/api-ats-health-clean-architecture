@@ -25,9 +25,18 @@ class Server {
     }
 
     private config() {
-        this.app.use(bodyParser.urlencoded({ extended:true }));
-        this.app.use(bodyParser.json({ limit: '1mb' })); // 100kb default
-        this.app.use(cors());
+        const corsOptions: cors.CorsOptions = {
+            origin: true,
+            credentials: true,
+            methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+            allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept', 'Origin'],
+            optionsSuccessStatus: 200,
+        };
+
+        this.app.use(cors(corsOptions));
+        this.app.options('*', cors(corsOptions));
+        this.app.use(bodyParser.urlencoded({ extended: true }));
+        this.app.use(bodyParser.json({ limit: '1mb' }));
     }
 
     private swaggerConfig() {
